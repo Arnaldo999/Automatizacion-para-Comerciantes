@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"="width=device-width, initial-scale=1.0">
+  <title>Registro de Transacciones</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .comerciante-info {
+      background: rgba(255,255,255,0.2);
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+
+    .comerciante-info.loading {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    .form-container {
+      padding: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .tipo-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .tipo-btn {
+      padding: 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .tipo-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .tipo-btn.active.ingreso {
+      border-color: #2E7D32;
+      background: #E8F5E9;
+    }
+
+    .tipo-btn.active.gasto {
+      border-color: #C62828;
+      background: #FFEBEE;
+    }
+
+    .tipo-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .tipo-text {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .tipo-btn.active.ingreso .tipo-text {
+      color: #2E7D32;
+    }
+
+    .tipo-btn.active.gasto .tipo-text {
+      color: #C62828;
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      font-weight: 600;
+      color: #666;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 15px 15px 15px 40px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      transition: border-color 0.3s;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #2E7D32;
+    }
+
+    .metodo-grid, .categoria-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .option-btn {
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: left;
+    }
+
+    .option-btn:hover {
+      border-color: #2E7D32;
+    }
+
+    .option-btn.active {
+      border-color: #2E7D32;
+      background: #E8F5E9;
+    }
+
+    .option-btn.active.categoria {
+      border-color: #C62828;
+      background: #FFEBEE;
+    }
+
+    .option-icon {
+      font-size: 24px;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .option-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: #666;
+    }
+
+    .option-btn.active .option-text {
+      color: #2E7D32;
+    }
+
+    .option-btn.active.categoria .option-text {
+      color: #C62828;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color 0.3s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #2E7D32;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: white;
+    }
+
+    .submit-btn.ingreso {
+      background: #2E7D32;
+    }
+
+    .submit-btn.gasto {
+      background: #C62828;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-success {
+      background: #E8F5E9;
+      border: 2px solid #2E7D32;
+      color: #1B5E20;
+    }
+
+    .alert-error {
+      background: #FFEBEE;
+      border: 2px solid #C62828;
+      color: #B71C1C;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 0;
+        border-radius: 0;
+      }
+      
+      .form-container {
+        padding: 20px;
+      }
+      
+      .header {
+        padding: 20px;
+      }
+      
+      .tipo-buttons, .metodo-grid, .categoria-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="header">
+      <h1>💰 Registro de Transacciones</h1>
+      <p style="font-size: 14px; opacity: 0.9; margin-top: 5px;">Registra tus ingresos y gastos diarios</p>
+      
+      <div class="comerciante-info loading" id="comercianteInfo">
+        <p style="font-size: 14px;">🔄 Cargando información...</p>
+      </div>
+    </div>
+
+    <!-- FORMULARIO -->
+    <div class="form-container">
+      <div id="alertContainer"></div>
+
+      <form id="transaccionForm">
+        <!-- TIPO DE TRANSACCIÓN -->
+        <div class="form-group">
+          <label class="form-label">📊 Tipo de Transacción</label>
+          <div class="tipo-buttons">
+            <div class="tipo-btn active ingreso" data-tipo="INGRESO">
+              <div class="tipo-icon">📈</div>
+              <div class="tipo-text">INGRESO</div>
+            </div>
+            <div class="tipo-btn" data-tipo="GASTO">
+              <div class="tipo-icon">📉</div>
+              <div class="tipo-text">GASTO</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MONTO -->
+        <div class="form-group">
+          <label class="form-label">💵 Monto *</label>
+          <div class="input-group">
+            <span class="input-prefix">$</span>
+            <input type="number" id="monto" step="0.01" placeholder="0.00" required>
+          </div>
+        </div>
+
+        <!-- MÉTODO DE COBRO (solo INGRESO) -->
+        <div class="form-group" id="metodoGroup">
+          <label class="form-label">💳 Método de Cobro *</label>
+          <div class="metodo-grid">
+            <div class="option-btn" data-metodo="Efectivo">
+              <span class="option-icon">💵</span>
+              <span class="option-text">Efectivo</span>
+            </div>
+            <div class="option-btn" data-metodo="Tarjeta de Credito">
+              <span class="option-icon">💳</span>
+              <span class="option-text">Tarjeta de Crédito</span>
+            </div>
+            <div class="option-btn" data-metodo="Transferencia">
+              <span class="option-icon">🏦</span>
+              <span class="option-text">Transferencia</span>
+            </div>
+            <div class="option-btn" data-metodo="Fiado a credito">
+              <span class="option-icon">📝</span>
+              <span class="option-text">Fiado a crédito</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CATEGORÍA DE GASTO (solo GASTO) -->
+        <div class="form-group hidden" id="categoriaGroup">
+          <label class="form-label">📋 Categoría de Gasto *</label>
+          <div class="categoria-grid">
+            <div class="option-btn" data-categoria="Proveedores">
+              <span class="option-icon">📦</span>
+              <span class="option-text">Proveedores</span>
+            </div>
+            <div class="option-btn" data-categoria="Servicios">
+              <span class="option-icon">⚡</span>
+              <span class="option-text">Servicios</span>
+            </div>
+            <div class="option-btn" data-categoria="Alquiler">
+              <span class="option-icon">🏠</span>
+              <span class="option-text">Alquiler</span>
+            </div>
+            <div class="option-btn" data-categoria="Sueldos">
+              <span class="option-icon">👥</span>
+              <span class="option-text">Sueldos</span>
+            </div>
+            <div class="option-btn" data-categoria="Otros">
+              <span class="option-icon">📋</span>
+              <span class="option-text">Otros</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DESCRIPCIÓN -->
+        <div class="form-group">
+          <label class="form-label" id="descripcionLabel">📝 Descripción (Opcional)</label>
+          <textarea id="descripcion" placeholder="Ej: Venta de productos, pago de servicios, compra de mercadería..."></textarea>
+        </div>
+
+        <!-- BOTÓN ENVIAR -->
+        <button type="submit" class="submit-btn ingreso" id="submitBtn">
+          ✅ Registrar Ingreso
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ========================================
+    // CONFIGURACIÓN - CAMBIA ESTAS URLs
+    // ========================================
+    const CONFIG = {
+      WEBHOOK_OBTENER_COMERCIANTE: 'https://arnaldoayala999.app.n8n.cloud/webhook/obtener-comerciante',
+      WEBHOOK_GUARDAR_TRANSACCION: 'https://arnaldoayala999.app.n8n.cloud/webhook/guardar-transaccion'
+    };
+
+    // ========================================
+    // VARIABLES GLOBALES
+    // ========================================
+    let comercianteData = null;
+    let tipoSeleccionado = 'INGRESO';
+    let metodoSeleccionado = '';
+    let categoriaSeleccionada = '';
+
+    // ========================================
+    // OBTENER ID DE LA URL
+    // ========================================
+    function obtenerIDdeURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    // ========================================
+    // CARGAR DATOS DEL COMERCIANTE
+    // ========================================
+    async function cargarComercianteData() {
+      const id = obtenerIDdeURL();
+      
+      if (!id) {
+        mostrarError('No se encontró el ID del comerciante en la URL');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${CONFIG.WEBHOOK_OBTENER_COMERCIANTE}?id=${id}`);
+        const data = await response.json();
+
+        if (data.error) {
+          mostrarError(data.message || 'Comerciante no encontrado');
+          return;
+        }
+
+        comercianteData = data;
+        mostrarInfoComerciente(data);
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al cargar los datos del comerciante');
+      }
+    }
+
+    // ========================================
+    // MOSTRAR INFO DEL COMERCIANTE
+    // ========================================
+    function mostrarInfoComerciente(data) {
+      const infoDiv = document.getElementById('comercianteInfo');
+      infoDiv.classList.remove('loading');
+      infoDiv.innerHTML = `
+        <p style="font-size: 14px; margin-bottom: 5px;">
+          <strong>👤 Comerciante:</strong> ${data.nombre}
+        </p>
+        <p style="font-size: 12px; opacity: 0.9;">
+          ID: ${data.id}
+        </p>
+      `;
+    }
+
+    // ========================================
+    // MANEJO DEL TIPO DE TRANSACCIÓN
+    // ========================================
+    document.querySelectorAll('.tipo-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('active', 'ingreso', 'gasto'));
+        
+        const tipo = this.dataset.tipo;
+        tipoSeleccionado = tipo;
+        
+        if (tipo === 'INGRESO') {
+          this.classList.add('active', 'ingreso');
+          document.getElementById('metodoGroup').classList.remove('hidden');
+          document.getElementById('categoriaGroup').classList.add('hidden');
+          document.getElementById('descripcionLabel').textContent = '📝 Descripción (Opcional)';
+          document.getElementById('submitBtn').className = 'submit-btn ingreso';
+          document.getElementById('submitBtn').textContent = '✅ Registrar Ingreso';
+        } else {
+          this.classList.add('active', 'gasto');
+          document.getElementById('metodoGroup').classList.add('hidden');
+          document.getElementById('categoriaGroup').classList.remove('hidden');
+          document.getElementById('descripcionLabel').textContent = '📝 Descripción (¿En qué gastaste?)';
+          document.getElementById('submitBtn').className = 'submit-btn gasto';
+          document.getElementById('submitBtn').textContent = '✅ Registrar Gasto';
+        }
+        
+        // Limpiar selecciones
+        metodoSeleccionado = '';
+        categoriaSeleccionada = '';
+        document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+      });
+    });
+
+    // ========================================
+    // MANEJO DE MÉTODO DE COBRO
+    // ========================================
+    document.querySelectorAll('[data-metodo]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('[data-metodo]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        metodoSeleccionado = this.dataset.metodo;
+      });
+    });
+
+    // ========================================
+    // MANEJO DE CATEGORÍA DE GASTO
+    // ========================================
+    document.querySelectorAll('[data-categoria]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('[data-categoria]').forEach(b => b.classList.remove('active', 'categoria'));
+        this.classList.add('active', 'categoria');
+        categoriaSeleccionada = this.dataset.categoria;
+      });
+    });
+
+    // ========================================
+    // ENVIAR FORMULARIO
+    // ========================================
+    document.getElementById('transaccionForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const monto = document.getElementById('monto').value;
+      const descripcion = document.getElementById('descripcion').value;
+
+      // Validaciones
+      if (!monto || monto <= 0) {
+        mostrarError('Por favor ingresa un monto válido');
+        return;
+      }
+
+      if (tipoSeleccionado === 'INGRESO' && !metodoSeleccionado) {
+        mostrarError('Por favor selecciona un método de cobro');
+        return;
+      }
+
+      if (tipoSeleccionado === 'GASTO' && !categoriaSeleccionada) {
+        mostrarError('Por favor selecciona una categoría de gasto');
+        return;
+      }
+
+      // Preparar datos
+      const transaccion = {
+        id_comerciante: comercianteData.id,
+        fecha_hora: new Date().toISOString(),
+        tipo: tipoSeleccionado,
+        monto: parseFloat(monto),
+        metodo: tipoSeleccionado === 'INGRESO' ? metodoSeleccionado : '',
+        categoria: tipoSeleccionado === 'GASTO' ? categoriaSeleccionada : '',
+        descripcion: descripcion
+      };
+
+      // Deshabilitar botón
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span> Guardando...';
+
+      try {
+        const response = await fetch(CONFIG.WEBHOOK_GUARDAR_TRANSACCION, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(transaccion)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          mostrarExito('¡Transacción registrada con éxito!');
+          limpiarFormulario();
+        } else {
+          mostrarError('Error al guardar la transacción');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error de conexión. Intenta nuevamente.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = tipoSeleccionado === 'INGRESO' ? '✅ Registrar Ingreso' : '✅ Registrar Gasto';
+      }
+    });
+
+    // ========================================
+    // FUNCIONES DE ALERTA
+    // ========================================
+    function mostrarExito(mensaje) {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-success fade-in';
+      alertDiv.innerHTML = `
+        <span style="font-size: 20px;">✅</span>
+        <span><strong>¡Éxito!</strong> ${mensaje}</span>
+      `;
+      
+      const container = document.getElementById('alertContainer');
+      container.innerHTML = '';
+      container.appendChild(alertDiv);
+      
+      setTimeout(() => {
+        alertDiv.remove();
+      }, 4000);
+    }
+
+    function mostrarError(mensaje) {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-error fade-in';
+      alertDiv.innerHTML = `
+        <span style="font-size: 20px;">⚠️</span>
+        <span><strong>Error:</strong> ${mensaje}</span>
+      `;
+      
+      const container = document.getElementById('alertContainer');
+      container.innerHTML = '';
+      container.appendChild(alertDiv);
+      
+      setTimeout(() => {
+        alertDiv.remove();
+      }, 5000);
+    }
+
+    // ========================================
+    // LIMPIAR FORMULARIO
+    // ========================================
+    function limpiarFormulario() {
+      document.getElementById('monto').value = '';
+      document.getElementById('descripcion').value = '';
+      metodoSeleccionado = '';
+      categoriaSeleccionada = '';
+      document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active', 'categoria'));
+    }
+
+    // ========================================
+    // INICIALIZAR AL CARGAR
+    // ========================================
+    window.addEventListener('DOMContentLoaded', () => {
+      cargarComercianteData();
+    });
+  </script>
+</body>
+</html>
