@@ -1,5 +1,5 @@
 {
-  "name": "Obtener ID Comerciantes",
+  "name": "Obtener ID Comerciante",
   "nodes": [
     {
       "parameters": {
@@ -919,8 +919,10 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "mode": "id",
-          "value": "1fC_1rTsSdJduCEZ1plTcqtaNE_8pOXAJio3japqHMGk"
+          "value": "1fC_1rTsSdJduCEZ1plTcqtaNE_8pOXAJio3japqHMGk",
+          "mode": "list",
+          "cachedResultName": "Base_de_Datos_Comerciantes_N8N_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fC_1rTsSdJduCEZ1plTcqtaNE_8pOXAJio3japqHMGk/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
@@ -933,10 +935,6 @@
           "values": [
             {
               "lookupColumn": "ID_Comerciante",
-              "lookupValue": "={{ $json.query.id }}"
-            },
-            {
-              "lookupColumn": "Nombre_Local",
               "lookupValue": "={{ $json.query.id }}"
             }
           ]
@@ -960,7 +958,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return {\n  nombre: $json[\"Nombre_Local\"], \n  id: $json[\"ID\"]\n};"
+        "jsCode": "// Usamos el operador || para evitar fallos si el nombre varía\nconst datos = $json;\n\nreturn {\n  nombre: datos[\"Nombre_Local\"] || datos[\"Nombre Local\"] || \"Local Sin Nombre\", \n  id: datos[\"ID_Comerciante\"] || datos[\"ID\"] || datos[\"id\"]\n};"
       },
       "id": "ece0cc4b-f4da-400d-bebf-0949e14782c0",
       "name": "Formatear Respuesta",
@@ -1256,7 +1254,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f8da2bfd-a59a-455b-a08d-e686c45b90d5",
+  "versionId": "87be5f58-7592-4ac6-ba5f-924e96503cf7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "131b4a9b2115ebba5fea15fd91696fb37668c68df2c0f044524f4dfa8663dfd6"
