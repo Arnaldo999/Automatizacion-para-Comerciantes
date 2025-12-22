@@ -255,7 +255,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Preparar datos para Google Sheets\nconst body = $json.body;\n\n// Generar timestamp en formato de Google Sheets\nconst now = new Date();\nconst timestamp = now.toLocaleString('es-AR', {\n  day: '2-digit',\n  month: '2-digit',\n  year: 'numeric',\n  hour: '2-digit',\n  minute: '2-digit',\n  second: '2-digit',\n  hour12: false\n}).replace(',', '');\n\nreturn [{\n  json: {\n    Marca_temporal: timestamp,\n    ID_Comerciante: body.id_comerciante || '',\n    Tipo_Transaccion: body.tipo || '',\n    Monto_Original: body.monto || 0,\n    Metodo_Cobro: body.metodo || '',\n    Categoria_Gasto: body.categoria || '',\n    Descripcion: body.descripcion || ''\n  }\n}];"
+        "jsCode": "console.log('==== DEBUG WEBHOOK ====');\nconsole.log('JSON COMPLETO:', JSON.stringify($json, null, 2));\nconsole.log('BODY:', JSON.stringify($json.body, null, 2));\nconsole.log('QUERY:', JSON.stringify($json.query, null, 2));\nconsole.log('HEADERS:', JSON.stringify($json.headers, null, 2));\nconsole.log('=======================');\n\nconst body = $json.body || {};\nconst query = $json.query || {};\n\n// 🔹 Normalizar monto\nconst parseMonto = (valor) => {\n  if (!valor) return 0;\n  if (typeof valor === 'number') return valor;\n\n  return Number(\n    valor\n      .toString()\n      .replace(/\\./g, '')\n      .replace(',', '.')\n  ) || 0;\n};\n\n// 🔹 Timestamp Argentina\nconst now = new Date();\nconst timestamp = now.toLocaleString('sv-SE', {\n  timeZone: 'America/Argentina/Buenos_Aires',\n  year: 'numeric',\n  month: '2-digit',\n  day: '2-digit',\n  hour: '2-digit',\n  minute: '2-digit',\n  second: '2-digit',\n  hour12: false\n});\n\n// 🔴 ID REAL (prioridad clara)\nconst ID_Comerciante =\n  body.ID_Comerciante ||\n  body.id_comerciante ||\n  query.id ||\n  query.ID_Comerciante ||\n  '';\n\nif (!ID_Comerciante) {\n  console.warn('⚠️ ID_Comerciante NO recibido');\n}\n\nreturn [{\n  json: {\n    Marca_temporal: timestamp,\n    ID_Comerciante,\n    Tipo_Transaccion: body.Tipo_Transaccion || body.tipo || '',\n    Monto_Original: parseMonto(body.Monto_Original || body.monto),\n    Metodo_Cobro: body.Metodo_Cobro || body.metodo || '',\n    Categoria_Gasto: body.Categoria_Gasto || body.categoria || '',\n    Descripcion: body.Descripcion || body.descripcion || ''\n  }\n}];\n"
       },
       "id": "38ea6d15-ee3f-4265-ad59-82300f6aebf6",
       "name": "Code - Preparar Datos",
@@ -1254,7 +1254,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "87be5f58-7592-4ac6-ba5f-924e96503cf7",
+  "versionId": "17404113-89ed-4d59-9066-384e393be1ae",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "131b4a9b2115ebba5fea15fd91696fb37668c68df2c0f044524f4dfa8663dfd6"
