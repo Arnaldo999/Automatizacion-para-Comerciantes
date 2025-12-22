@@ -1,5 +1,5 @@
 {
-  "name": "Reportes Diarios Comerciantes",
+  "name": "Guardar Transaccion",
   "nodes": [
     {
       "parameters": {
@@ -205,6 +205,7 @@
         "respondWith": "json",
         "responseBody": "={{ $json }}",
         "options": {
+          "responseCode": 200,
           "responseHeaders": {
             "entries": [
               {
@@ -254,7 +255,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Preparar datos para Google Sheets\nconst body = $json.body;\n\n// Generar timestamp en formato de Google Sheets\nconst now = new Date();\nconst timestamp = now.toLocaleString('es-AR', {\n  day: '2-digit',\n  month: '2-digit',\n  year: 'numeric',\n  hour: '2-digit',\n  minute: '2-digit',\n  second: '2-digit',\n  hour12: false\n}).replace(',', '');\n\nreturn [{\n  json: {\n    Marca_temporal: timestamp,\n    ID_Comerciante: body.id_comerciante || '',\n    Tipo_Transaccion: body.tipo || '',\n    Monto_Original: body.monto || 0,\n    Metodo_Cobro: body.metodo || '',\n    Categoria_Gasto: body.categoria || '',\n    Descripcion: body.descripcion || ''\n  }\n}];"
+        "jsCode": "console.log('==== DEBUG WEBHOOK ====');\nconsole.log('JSON COMPLETO:', JSON.stringify($json, null, 2));\nconsole.log('BODY:', JSON.stringify($json.body, null, 2));\nconsole.log('QUERY:', JSON.stringify($json.query, null, 2));\nconsole.log('HEADERS:', JSON.stringify($json.headers, null, 2));\nconsole.log('=======================');\n\nconst body = $json.body || {};\nconst query = $json.query || {};\n\n// 🔹 Normalizar monto\nconst parseMonto = (valor) => {\n  if (!valor) return 0;\n  if (typeof valor === 'number') return valor;\n\n  return Number(\n    valor\n      .toString()\n      .replace(/\\./g, '')\n      .replace(',', '.')\n  ) || 0;\n};\n\n// 🔹 Timestamp Argentina\nconst now = new Date();\nconst timestamp = now.toLocaleString('sv-SE', {\n  timeZone: 'America/Argentina/Buenos_Aires',\n  year: 'numeric',\n  month: '2-digit',\n  day: '2-digit',\n  hour: '2-digit',\n  minute: '2-digit',\n  second: '2-digit',\n  hour12: false\n});\n\n// 🔴 ID REAL (prioridad clara)\nconst ID_Comerciante =\n  body.ID_Comerciante ||\n  body.id_comerciante ||\n  query.id ||\n  query.ID_Comerciante ||\n  '';\n\nif (!ID_Comerciante) {\n  console.warn('⚠️ ID_Comerciante NO recibido');\n}\n\nreturn [{\n  json: {\n    Marca_temporal: timestamp,\n    ID_Comerciante,\n    Tipo_Transaccion: body.Tipo_Transaccion || body.tipo || '',\n    Monto_Original: parseMonto(body.Monto_Original || body.monto),\n    Metodo_Cobro: body.Metodo_Cobro || body.metodo || '',\n    Categoria_Gasto: body.Categoria_Gasto || body.categoria || '',\n    Descripcion: body.Descripcion || body.descripcion || ''\n  }\n}];\n"
       },
       "id": "38ea6d15-ee3f-4265-ad59-82300f6aebf6",
       "name": "Code - Preparar Datos",
@@ -957,7 +958,7 @@
     },
     {
       "parameters": {
-        "jsCode": "<script>\n    const WEBHOOKS = {\n        CONSULTA: 'https://arnaldoayala999.app.n8n.cloud/webhook/obtener-comerciante',\n        GUARDAR: 'https://arnaldoayala999.app.n8n.cloud/webhook/guardar-transaccion'\n    };\n\n    let comercianteData = { id: '', nombre: '' };\n    let ventaActual = { items: [], total: 0 };\n    let estaProcesando = false;\n\n    window.onload = async () => {\n        const params = new URLSearchParams(window.location.search);\n        const idEnUrl = params.get('id') || 'C001';\n        \n        comercianteData.id = idEnUrl;\n        document.getElementById('userId').textContent = idEnUrl;\n\n        try {\n            // Llamada a n8n\n            const response = await fetch(`${WEBHOOKS.CONSULTA}?id=${idEnUrl}`);\n            const data = await response.json();\n            \n            // BUSCAMOS EL NOMBRE (Aceptamos 'nombre' o 'Nombre_Local')\n            const nombreFinal = data.nombre || data.Nombre_Local || data.Nombre || 'Comerciante';\n            \n            comercianteData.nombre = nombreFinal;\n            document.getElementById('userName').textContent = nombreFinal;\n            \n            console.log(\"Datos recibidos:\", data);\n        } catch (error) {\n            console.error('Error conectando a n8n:', error);\n            document.getElementById('userName').textContent = 'Error de Conexión';\n        }\n        cargarVentaGuardada();\n    };\n\n    // ... (El resto de funciones agregarItem, procesarCobro, etc. se mantienen igual)\n</script>"
+        "jsCode": "// Usamos el operador || para evitar fallos si el nombre varía\nconst datos = $json;\n\nreturn {\n  nombre: datos[\"Nombre_Local\"] || datos[\"Nombre Local\"] || \"Local Sin Nombre\", \n  id: datos[\"ID_Comerciante\"] || datos[\"ID\"] || datos[\"id\"]\n};"
       },
       "id": "ece0cc4b-f4da-400d-bebf-0949e14782c0",
       "name": "Formatear Respuesta",
@@ -971,6 +972,7 @@
     {
       "parameters": {
         "path": "obtener-comerciante",
+        "responseMode": "responseNode",
         "options": {
           "allowedOrigins": "*"
         }
@@ -1248,11 +1250,11 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "a6acd482-5fa5-42be-84aa-aadf7544f3d3",
+  "versionId": "17404113-89ed-4d59-9066-384e393be1ae",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "131b4a9b2115ebba5fea15fd91696fb37668c68df2c0f044524f4dfa8663dfd6"
