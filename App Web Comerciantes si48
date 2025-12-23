@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🏪 POS - Almacén</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-green: #00ff88;
+            --dark-bg: #0a0e1a;
+            --card-bg: #141824;
+            --accent-blue: #00d4ff;
+            --accent-purple: #b84fff;
+            --warning-red: #ff3366;
+            --success-gold: #ffc700;
+            --text-dim: #6b7280;
+            --text-light: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1f35 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Efecto de estrellas en el fondo */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, white, transparent),
+                radial-gradient(2px 2px at 60% 70%, white, transparent),
+                radial-gradient(1px 1px at 50% 50%, white, transparent),
+                radial-gradient(1px 1px at 80% 10%, white, transparent),
+                radial-gradient(2px 2px at 90% 60%, white, transparent);
+            background-size: 200% 200%;
+            animation: twinkle 8s ease-in-out infinite;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================================
+           PANTALLA: MENÚ PRINCIPAL
+        ============================================ */
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(184, 79, 255, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-id {
+            font-size: 1rem;
+            color: var(--text-dim);
+        }
+
+        .main-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .btn-main {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            border: none;
+            border-radius: 20px;
+            padding: 30px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .btn-main::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-main:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-main:active {
+            transform: scale(0.95);
+        }
+
+        .btn-main.ventas {
+            background: linear-gradient(135deg, var(--neon-green) 0%, var(--accent-blue) 100%);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-main.gastos {
+            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--warning-red) 100%);
+            box-shadow: 0 10px 30px rgba(184, 79, 255, 0.3);
+        }
+
+        .btn-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* ============================================
+           PANTALLA: NUEVA VENTA
+        ============================================ */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 10px 20px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .btn-back:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .display-container {
+            background: linear-gradient(135deg, var(--card-bg) 0%, #1f2437 100%);
+            border: 2px solid var(--neon-green);
+            border-radius: 24px;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.2);
+        }
+
+        .display-label {
+            font-size: 1rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .display-amount {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--neon-green);
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            transition: transform 0.3s;
+        }
+
+        .display-amount.pulse {
+            animation: pulseBig 0.6s ease-out;
+        }
+
+        @keyframes pulseBig {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 1rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.3rem;
+            color: white !important;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        input[type="number"] {
+            color: white !important;
+            -webkit-text-fill-color: white !important;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        textarea.input-field {
+            min-height: 80px;
+            resize: vertical;
+            font-size: 1.1rem;
+            color: white !important;
+            -webkit-text-fill-color: white !important;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--neon-green) 0%, var(--accent-blue) 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .btn-add:active {
+            transform: scale(0.95);
+        }
+
+        .items-list-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .items-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .items-title {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+        }
+
+        .items-count {
+            background: var(--accent-purple);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            padding: 12px 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .item-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--neon-green);
+        }
+
+        .btn-remove {
+            background: var(--warning-red);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .btn-remove:active {
+            transform: scale(0.9);
+        }
+
+        .empty-items {
+            text-align: center;
+            color: var(--text-dim);
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-action {
+            flex: 1;
+            border: none;
+            border-radius: 16px;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .btn-cancel {
+            background: rgba(255, 51, 102, 0.2);
+            border: 2px solid var(--warning-red);
+            color: var(--warning-red);
+        }
+
+        .btn-cancel:active {
+            transform: scale(0.95);
+            background: rgba(255, 51, 102, 0.3);
+        }
+
+        .btn-cobrar {
+            background: linear-gradient(135deg, var(--success-gold) 0%, var(--neon-green) 100%);
+            color: var(--dark-bg);
+            box-shadow: 0 5px 20px rgba(255, 199, 0, 0.4);
+        }
+
+        .btn-cobrar:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-cobrar:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        /* ============================================
+           MODAL COBRO
+        ============================================ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 26, 0.95);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--card-bg) 0%, #1f2437 100%);
+            border: 2px solid var(--accent-blue);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            animation: scaleIn 0.3s ease-out;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 10px;
+        }
+
+        .modal-amount {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--success-gold);
+            text-shadow: 0 0 20px rgba(255, 199, 0, 0.5);
+        }
+
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn-payment {
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .btn-payment:active {
+            transform: scale(0.95);
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        .btn-modal-cancel {
+            background: rgba(255, 51, 102, 0.1);
+            border: 2px solid var(--warning-red);
+            border-radius: 16px;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--warning-red);
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .btn-modal-cancel:active {
+            transform: scale(0.95);
+            background: rgba(255, 51, 102, 0.2);
+        }
+
+        /* ============================================
+           PANTALLA: NUEVO GASTO
+        ============================================ */
+        .custom-select-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .select-trigger {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.3rem;
+            color: var(--text-dim);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .select-trigger.selected {
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        .select-trigger:active {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .select-arrow {
+            transition: transform 0.3s;
+        }
+
+        .custom-select.open .select-arrow {
+            transform: rotate(180deg);
+        }
+
+        .select-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border: 2px solid var(--accent-blue);
+            border-radius: 12px;
+            margin-top: 5px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .custom-select.open .select-options {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .custom-option {
+            padding: 15px;
+            font-size: 1.2rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .custom-option:last-child {
+            border-bottom: none;
+        }
+
+        .custom-option:hover,
+        .custom-option:active {
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 18px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(184, 79, 255, 0.4);
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .btn-save:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .btn-save:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           NOTIFICACIONES Y EFECTOS
+        ============================================ */
+        .notification {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            border: 2px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 18px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            z-index: 2000;
+            transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 90%;
+        }
+
+        .notification.show {
+            bottom: 30px;
+        }
+
+        .notification.success {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        }
+
+        .notification.error {
+            border-color: var(--warning-red);
+            color: var(--warning-red);
+            box-shadow: 0 0 30px rgba(255, 51, 102, 0.4);
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--neon-green);
+            top: -10px;
+            border-radius: 50%;
+            animation: confettiFall 3s ease-out forwards;
+            z-index: 9999;
+        }
+
+        @keyframes confettiFall {
+            to {
+                top: 100vh;
+                transform: translateX(calc(var(--x) * 100px)) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* ============================================
+           CONFIRMACIÓN OPTIMISTA (NUEVO)
+        ============================================ */
+        .confirmacion-flash {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 60px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            text-align: center;
+            animation: scaleInBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .confirmacion-flash .checkmark {
+            font-size: 80px;
+            margin-bottom: 15px;
+            animation: checkmarkPop 0.6s ease-out;
+        }
+
+        .confirmacion-flash p {
+            margin: 8px 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .confirmacion-flash .monto {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-top: 10px;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .confirmacion-flash.fade-out {
+            animation: fadeOutScale 0.4s ease-out forwards;
+        }
+
+        @keyframes scaleInBounce {
+            from {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes checkmarkPop {
+            0% {
+                transform: scale(0) rotate(0deg);
+            }
+            50% {
+                transform: scale(1.3) rotate(15deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        @keyframes fadeOutScale {
+            to {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+        }
+
+        /* ============================================
+           INDICADOR DE SINCRONIZACIÓN (NUEVO)
+        ============================================ */
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 8px 15px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s;
+        }
+
+        .sync-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .sync-indicator.syncing {
+            color: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .sync-indicator.synced {
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+        }
+
+        .sync-indicator.error {
+            color: var(--warning-red);
+            border-color: var(--warning-red);
+        }
+
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .sync-dot.pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Estilos responsive */
+        @media (max-width: 480px) {
+            .display-amount {
+                font-size: 2.5rem;
+            }
+            .confirmacion-flash {
+                padding: 30px 40px;
+            }
+            .confirmacion-flash .checkmark {
+                font-size: 60px;
+            }
+            .confirmacion-flash .monto {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- MENÚ PRINCIPAL -->
+        <div id="menu-screen" class="screen active">
+            <div class="header">
+                <div class="user-info">
+                    <div class="user-name" id="userName">Cargando...</div>
+                    <div class="user-id">ID: <span id="userId">---</span></div>
+                </div>
+            </div>
+
+            <div class="main-buttons">
+                <button class="btn-main ventas" onclick="showVentasScreen()">
+                    <span class="btn-icon">💰</span>
+                    NUEVA VENTA
+                </button>
+
+                <button class="btn-main gastos" onclick="showGastosScreen()">
+                    <span class="btn-icon">📊</span>
+                    REGISTRAR GASTO
+                </button>
+            </div>
+        </div>
+
+        <!-- NUEVA VENTA -->
+        <div id="ventas-screen" class="screen">
+            <div class="top-bar">
+                <button class="btn-back" onclick="cancelarVenta()">← Volver</button>
+            </div>
+
+            <div class="display-container">
+                <div class="display-label">Total</div>
+                <div class="display-amount" id="totalDisplay">$ 0.00</div>
+            </div>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <label class="input-label">Monto del producto</label>
+                    <input 
+                        type="number" 
+                        id="montoInput" 
+                        class="input-field" 
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0">
+                </div>
+                <button class="btn-add" onclick="agregarItem()">➕ Agregar Item</button>
+            </div>
+
+            <div class="items-list-container">
+                <div class="items-header">
+                    <span class="items-title">Items</span>
+                    <span class="items-count" id="itemsCount">0</span>
+                </div>
+                <div class="items-list" id="itemsList">
+                    <div class="empty-items">No hay items</div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-action btn-cancel" onclick="cancelarVenta()">✕ Cancelar</button>
+                <button class="btn-action btn-cobrar" id="btnCobrar" onclick="mostrarModalCobro()" disabled>
+                    💵 Cobrar <span id="totalCobrar">$ 0.00</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- NUEVO GASTO -->
+        <div id="gastos-screen" class="screen">
+            <div class="top-bar">
+                <button class="btn-back" onclick="showMenuScreen()">← Volver</button>
+            </div>
+
+            <div class="display-container">
+                <div class="display-label">Nuevo Gasto</div>
+                <div class="display-amount" style="font-size: 2rem; color: var(--warning-red);">📊</div>
+            </div>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <label class="input-label">Monto</label>
+                    <input 
+                        type="number" 
+                        id="montoGasto" 
+                        class="input-field" 
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Categoría</label>
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select" id="customSelect">
+                            <div class="select-trigger" id="selectTrigger">
+                                <span id="selectedText">Selecciona una categoría</span>
+                                <span class="select-arrow">▼</span>
+                            </div>
+                            <div class="select-options">
+                                <div class="custom-option" data-value="Alquiler">🏠 Alquiler</div>
+                                <div class="custom-option" data-value="Servicios">⚡ Servicios</div>
+                                <div class="custom-option" data-value="Mercadería">📦 Mercadería</div>
+                                <div class="custom-option" data-value="Sueldos">💼 Sueldos</div>
+                                <div class="custom-option" data-value="Impuestos">📋 Impuestos</div>
+                                <div class="custom-option" data-value="Otros">📌 Otros</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="categoriaGasto" value="">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Descripción (opcional)</label>
+                    <textarea 
+                        id="descripcionGasto" 
+                        class="input-field" 
+                        placeholder="Detalles del gasto..."
+                        rows="3"></textarea>
+                </div>
+
+                <button class="btn-save" id="btnGuardarGasto" onclick="guardarGasto()">
+                    💾 Guardar Gasto
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL COBRO -->
+    <div id="modalCobro" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Método de Pago</div>
+                <div class="modal-amount" id="modalAmount">$ 0.00</div>
+            </div>
+
+            <div class="payment-methods">
+                <button class="btn-payment" onclick="procesarCobro('Efectivo')">
+                    💵 Efectivo
+                </button>
+                <button class="btn-payment" onclick="procesarCobro('Tarjeta')">
+                    💳 Tarjeta
+                </button>
+                <button class="btn-payment" onclick="procesarCobro('Transferencia')">
+                    🏦 Transferencia
+                </button>
+            </div>
+
+            <button class="btn-modal-cancel" onclick="cerrarModalCobro()">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <!-- INDICADOR DE SINCRONIZACIÓN -->
+    <div id="syncIndicator" class="sync-indicator">
+        <div class="sync-dot"></div>
+        <span id="syncText">Sincronizado</span>
+    </div>
+
+    <!-- NOTIFICACIÓN -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // ============================================
+        // CONFIGURACIÓN - INSTANCIA: arielayalasi48
+        // ============================================
+        const WEBHOOKS = {
+            CONSULTA: 'https://arielayalasi48.app.n8n.cloud/webhook/obtener-comerciante',
+            GUARDAR: 'https://arielayalasi48.app.n8n.cloud/webhook-test/guardar-transaccion'
+        };
+
+        let comercianteData = { id: '', nombre: '' };
+        let ventaActual = { items: [], total: 0 };
+
+        // ============================================
+        // SISTEMA DE SINCRONIZACIÓN OPTIMISTA (NUEVO)
+        // ============================================
+        const SyncManager = {
+            queue: [],
+            syncing: false,
+            
+            saveToLocal(data) {
+                const pendientes = JSON.parse(localStorage.getItem('transacciones_pendientes') || '[]');
+                pendientes.push({
+                    ...data,
+                    timestamp: new Date().toISOString(),
+                    sincronizado: false,
+                    intentos: 0
+                });
+                localStorage.setItem('transacciones_pendientes', JSON.stringify(pendientes));
+            },
+            
+            markAsSynced(timestamp) {
+                const pendientes = JSON.parse(localStorage.getItem('transacciones_pendientes') || '[]');
+                const actualizado = pendientes.map(t => 
+                    t.timestamp === timestamp ? {...t, sincronizado: true} : t
+                );
+                localStorage.setItem('transacciones_pendientes', JSON.stringify(actualizado));
+                this.cleanOldSynced();
+            },
+            
+            cleanOldSynced() {
+                const pendientes = JSON.parse(localStorage.getItem('transacciones_pendientes') || '[]');
+                const hace7Dias = new Date();
+                hace7Dias.setDate(hace7Dias.getDate() - 7);
+                
+                const limpio = pendientes.filter(t => 
+                    !t.sincronizado || new Date(t.timestamp) > hace7Dias
+                );
+                
+                localStorage.setItem('transacciones_pendientes', JSON.stringify(limpio));
+            },
+            
+            async sendToN8n(data) {
+                try {
+                    this.showSyncIndicator('syncing', 'Sincronizando...');
+                    
+                    const response = await fetch(WEBHOOKS.GUARDAR, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        this.markAsSynced(data.timestamp);
+                        this.showSyncIndicator('synced', 'Sincronizado', 2000);
+                        return true;
+                    } else {
+                        throw new Error('Error en respuesta del servidor');
+                    }
+                } catch (error) {
+                    console.error('Error al sincronizar:', error);
+                    this.showSyncIndicator('error', 'Error al sincronizar', 3000);
+                    return false;
+                }
+            },
+            
+            async syncPending() {
+                if (this.syncing) return;
+                this.syncing = true;
+                
+                const pendientes = JSON.parse(localStorage.getItem('transacciones_pendientes') || '[]');
+                const noSincronizados = pendientes.filter(t => !t.sincronizado && t.intentos < 5);
+                
+                for (const transaccion of noSincronizados) {
+                    const success = await this.sendToN8n(transaccion);
+                    if (!success) {
+                        transaccion.intentos++;
+                        localStorage.setItem('transacciones_pendientes', JSON.stringify(pendientes));
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                this.syncing = false;
+            },
+            
+            showSyncIndicator(state, text, duration = 0) {
+                const indicator = document.getElementById('syncIndicator');
+                const dot = indicator.querySelector('.sync-dot');
+                const textEl = document.getElementById('syncText');
+                
+                indicator.className = `sync-indicator show ${state}`;
+                textEl.textContent = text;
+                
+                if (state === 'syncing') {
+                    dot.classList.add('pulse');
+                } else {
+                    dot.classList.remove('pulse');
+                }
+                
+                if (duration > 0) {
+                    setTimeout(() => {
+                        indicator.classList.remove('show');
+                    }, duration);
+                }
+            },
+            
+            getPendingStats() {
+                const pendientes = JSON.parse(localStorage.getItem('transacciones_pendientes') || '[]');
+                return {
+                    total: pendientes.length,
+                    pendientes: pendientes.filter(t => !t.sincronizado).length,
+                    sincronizados: pendientes.filter(t => t.sincronizado).length
+                };
+            }
+        };
+
+        setInterval(() => SyncManager.syncPending(), 30000);
+        window.addEventListener('online', () => SyncManager.syncPending());
+
+        // ============================================
+        // CONFIRMACIÓN OPTIMISTA (NUEVO)
+        // ============================================
+        function mostrarConfirmacionOptimista(data) {
+            const mensaje = document.createElement('div');
+            mensaje.className = 'confirmacion-flash';
+            
+            const icono = data.tipo === 'INGRESO' ? '💰' : '📊';
+            const tipoTexto = data.tipo === 'INGRESO' ? 'Venta guardada' : 'Gasto guardado';
+            
+            mensaje.innerHTML = `
+                <div class="checkmark">${icono}</div>
+                <p>${tipoTexto}</p>
+                <p class="monto">$ ${data.monto.toFixed(2)}</p>
+            `;
+            
+            document.body.appendChild(mensaje);
+            
+            setTimeout(() => {
+                mensaje.classList.add('fade-out');
+                setTimeout(() => mensaje.remove(), 500);
+            }, 2000);
+        }
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        window.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+
+            if (!id) {
+                mostrarNotificacion('❌ Error: ID ausente en la URL', 'error');
+                return;
+            }
+            await cargarComercianteData(id);
+            cargarVentaGuardada();
+            setTimeout(() => SyncManager.syncPending(), 2000);
+        });
+
+        async function cargarComercianteData(id) {
+            try {
+                const response = await fetch(`${WEBHOOKS.CONSULTA}?id=${id}`);
+                const data = await response.json();
+                
+                comercianteData = {
+                    id: id,
+                    nombre: data.Nombre_Local || data.nombre || 'Comerciante'
+                };
+
+                document.getElementById('userName').textContent = comercianteData.nombre;
+                document.getElementById('userId').textContent = comercianteData.id;
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarNotificacion('❌ Error al cargar datos', 'error');
+            }
+        }
+
+        function showMenuScreen() { hideAllScreens(); document.getElementById('menu-screen').classList.add('active'); }
+        function showVentasScreen() { hideAllScreens(); document.getElementById('ventas-screen').classList.add('active'); document.getElementById('montoInput').focus(); }
+        function showGastosScreen() { hideAllScreens(); document.getElementById('gastos-screen').classList.add('active'); document.getElementById('montoGasto').focus(); }
+        function hideAllScreens() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); }
+
+        function agregarItem() {
+            const input = document.getElementById('montoInput');
+            const monto = parseFloat(input.value);
+            if (!monto || monto <= 0) { mostrarNotificacion('⚠️ Ingresa monto', 'error'); return; }
+            ventaActual.items.push(monto);
+            ventaActual.total += monto;
+            actualizarDisplayTotal();
+            actualizarListaItems();
+            guardarVentaTemporal();
+            input.value = ''; input.focus();
+            document.getElementById('totalDisplay').classList.add('pulse');
+            setTimeout(() => document.getElementById('totalDisplay').classList.remove('pulse'), 600);
+        }
+
+        function actualizarDisplayTotal() {
+            const totalF = ventaActual.total.toFixed(2);
+            document.getElementById('totalDisplay').textContent = `$ ${totalF}`;
+            document.getElementById('totalCobrar').textContent = `$ ${totalF}`;
+            document.getElementById('btnCobrar').disabled = ventaActual.items.length === 0;
+        }
+
+        function actualizarListaItems() {
+            const list = document.getElementById('itemsList');
+            document.getElementById('itemsCount').textContent = ventaActual.items.length;
+            if (ventaActual.items.length === 0) { list.innerHTML = '<div class="empty-items">No hay items</div>'; return; }
+            list.innerHTML = ventaActual.items.map((it, idx) => `
+                <div class="item">
+                    <span class="item-price">$ ${it.toFixed(2)}</span>
+                    <button class="btn-remove" onclick="eliminarItem(${idx})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function eliminarItem(idx) {
+            ventaActual.total -= ventaActual.items[idx];
+            ventaActual.items.splice(idx, 1);
+            actualizarDisplayTotal(); actualizarListaItems(); guardarVentaTemporal();
+        }
+
+        function cancelarVenta() {
+            if (ventaActual.items.length > 0 && confirm('¿Cancelar?')) {
+                ventaActual = { items: [], total: 0 };
+                actualizarDisplayTotal(); actualizarListaItems(); limpiarVentaTemporal();
+            }
+            showMenuScreen();
+        }
+
+        function mostrarModalCobro() {
+            document.getElementById('modalAmount').textContent = `$ ${ventaActual.total.toFixed(2)}`;
+            document.getElementById('modalCobro').classList.add('active');
+        }
+        function cerrarModalCobro() { document.getElementById('modalCobro').classList.remove('active'); }
+
+        // ============================================
+        // PROCESAR COBRO CON OPTIMISTIC UI (MEJORADO)
+        // ============================================
+        async function procesarCobro(metodoPago) {
+            cerrarModalCobro();
+            
+            const payload = {
+                id_comerciante: comercianteData.id,
+                tipo: 'INGRESO',
+                monto: ventaActual.total,
+                metodo: metodoPago,
+                descripcion: `Venta de ${ventaActual.items.length} productos`,
+                fecha_hora: new Date().toISOString(),
+                timestamp: new Date().toISOString()
+            };
+
+            mostrarConfirmacionOptimista(payload);
+            crearConfetti();
+            
+            ventaActual = { items: [], total: 0 };
+            limpiarVentaTemporal();
+            actualizarDisplayTotal();
+            actualizarListaItems();
+            
+            SyncManager.saveToLocal(payload);
+            setTimeout(showMenuScreen, 1500);
+            SyncManager.sendToN8n(payload);
+        }
+
+        // ============================================
+        // GUARDAR GASTO CON OPTIMISTIC UI (MEJORADO)
+        // ============================================
+        async function guardarGasto() {
+            const monto = parseFloat(document.getElementById('montoGasto').value);
+            const cat = document.getElementById('categoriaGasto').value;
+            const desc = document.getElementById('descripcionGasto').value;
+
+            if (!monto || !cat) { 
+                mostrarNotificacion('⚠️ Completa los campos', 'error'); 
+                return; 
+            }
+
+            const payload = {
+                id_comerciante: comercianteData.id,
+                tipo: 'GASTO',
+                monto: monto,
+                categoria: cat,
+                descripcion: desc || `Gasto: ${cat}`,
+                fecha_hora: new Date().toISOString(),
+                timestamp: new Date().toISOString()
+            };
+
+            mostrarConfirmacionOptimista(payload);
+            
+            document.getElementById('montoGasto').value = '';
+            document.getElementById('descripcionGasto').value = '';
+            document.getElementById('selectedText').textContent = 'Selecciona una categoría';
+            document.getElementById('categoriaGasto').value = '';
+            document.getElementById('selectTrigger').classList.remove('selected');
+            
+            SyncManager.saveToLocal(payload);
+            setTimeout(showMenuScreen, 1500);
+            SyncManager.sendToN8n(payload);
+        }
+
+        document.getElementById('selectTrigger').addEventListener('click', () => {
+            document.getElementById('customSelect').classList.toggle('open');
+        });
+
+        document.querySelectorAll('.custom-option').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                const val = e.target.dataset.value;
+                document.getElementById('selectedText').textContent = val;
+                document.getElementById('categoriaGasto').value = val;
+                document.getElementById('selectTrigger').classList.add('selected');
+                document.getElementById('customSelect').classList.remove('open');
+            });
+        });
+
+        function guardarVentaTemporal() { localStorage.setItem(`v_${comercianteData.id}`, JSON.stringify(ventaActual)); }
+        function cargarVentaGuardada() {
+            const s = localStorage.getItem(`v_${comercianteData.id}`);
+            if (s) { ventaActual = JSON.parse(s); actualizarDisplayTotal(); actualizarListaItems(); }
+        }
+        function limpiarVentaTemporal() { localStorage.removeItem(`v_${comercianteData.id}`); }
+
+        function mostrarNotificacion(m, t) {
+            const n = document.getElementById('notification');
+            n.textContent = m; n.className = `notification ${t} show`;
+            setTimeout(() => n.classList.remove('show'), 3000);
+        }
+
+        function crearConfetti() {
+            for (let i = 0; i < 40; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + '%';
+                c.style.background = ['#00ff88','#00d4ff','#ffc700'][Math.floor(Math.random()*3)];
+                c.style.setProperty('--x', (Math.random() - 0.5) * 2);
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 3000);
+            }
+        }
+    </script>
+</body>
+</html>
