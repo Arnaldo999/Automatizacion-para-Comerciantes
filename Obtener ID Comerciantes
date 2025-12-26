@@ -1,17 +1,17 @@
 {
-  "name": "Obtener ID Comerciante",
+  "name": "Obtener ID Comerciantes",
   "nodes": [
     {
       "parameters": {
         "amount": 10
       },
-      "id": "cfca20e3-fddd-4501-a202-f82b7c445733",
+      "id": "c9eb5085-684f-435c-a12f-bf2c662133e0",
       "name": "Esperar_Calculo_Corregido",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        336,
-        5024
+        3296,
+        -80
       ],
       "webhookId": "776fa633-8849-4085-8d8f-27575a2883e7",
       "notes": "CORRECCIÓN DEL FLUJO 5: Reemplaza la espera por 'amount' con una espera de 5 segundos. Esto da tiempo suficiente a Google Sheets para ejecutar las fórmulas de cálculo que dependen de las fechas recién escritas."
@@ -34,18 +34,18 @@
         },
         "options": {}
       },
-      "id": "a8724ae7-eee2-426d-90de-867210d59696",
+      "id": "9662277b-5d0e-4b72-a927-8b045c5eb0cb",
       "name": "Leer_Configuracion_Maestra1",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -560,
-        5104
+        2400,
+        0
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "nGEjO4FawppuNRsB",
-          "name": "Google Sheets account 3"
+          "id": "WAbbEq1J0INVKkVA",
+          "name": "Google Sheets account"
         }
       },
       "notes": "Lee la hoja de control 'Reporte_Plano' para obtener la lista de comerciantes y la Fecha_Ultimo_Reporte para cada uno."
@@ -54,13 +54,13 @@
       "parameters": {
         "jsCode": "const items = $input.all();\nconst comerciantes = [];\nconst claveIDComerciante = 'ID_Comerciante';\n\n// Función auxiliar para acceder a la clave sin importar mayúsculas/minúsculas\nconst getValueCaseInsensitive = (json, key) => {\n  const lowerKey = key.toLowerCase();\n  for (const jsonKey in json) {\n    if (jsonKey.toLowerCase().trim() === lowerKey.trim()) {\n      return json[jsonKey];\n    }\n  }\n  return undefined;\n};\n\n// --- FUNCIÓN SEGURA PARA PARSEAR FECHA (Maneja dd/mm/yyyy o yyyy-mm-dd) ---\nconst parseDate = (dateString) => {\n  if (!dateString) return null;\n  \n  const cleanString = dateString.toString().trim();\n  \n  // Si ya está en formato ISO (YYYY-MM-DD)\n  if (cleanString.includes('-') && cleanString.length === 10) {\n    const parts = cleanString.split('-');\n    return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));\n  }\n  \n  // Asumimos formato dd/mm/yyyy (formato Sudamérica de Google Sheets)\n  if (cleanString.includes('/') || cleanString.includes('.')) {\n    const separator = cleanString.includes('/') ? '/' : '.';\n    const parts = cleanString.split(separator).map(p => parseInt(p.trim()));\n    \n    // Date.UTC(año, mes(0-11), día)\n    if (parts.length === 3) {\n      // parts[2]=año, parts[1]-1=mes, parts[0]=día\n      return new Date(Date.UTC(parts[2], parts[1] - 1, parts[0]));\n    }\n  }\n  \n  return null;\n};\n// --------------------------------------\n\nconst comerciantePattern = /^C\\d+$/;\nconst FECHA_DEFAULT_INICIO_STR = '2025-01-01';\n\nfor (const item of items) {\n  const id = getValueCaseInsensitive(item.json, claveIDComerciante)?.toString().trim();\n\n  if (id && comerciantePattern.test(id)) {\n    // ✅ CORREGIDO: Buscar 'Fecha_Ultimo_Reporte' en lugar de 'FECHA_DESDE'\n    const fechaRaw = getValueCaseInsensitive(item.json, 'Fecha_Ultimo_Reporte')?.toString().trim();\n    const fechaUltimoReporte = fechaRaw || FECHA_DEFAULT_INICIO_STR;\n\n    comerciantes.push({\n      ID_Comerciante: id,\n      Nombre_Local: (getValueCaseInsensitive(item.json, 'Nombre_Local') || '').toString().trim(),\n      Email_Destino: (getValueCaseInsensitive(item.json, 'Email_Destino') || '').toString().trim(),\n      URL_Sheet_Datos: (getValueCaseInsensitive(item.json, 'URL_Sheet_Datos') || '').toString().trim(),\n      Fecha_Ultimo_Reporte: fechaUltimoReporte, \n      row_number: getValueCaseInsensitive(item.json, 'row_number')\n    });\n  }\n}\n\nconsole.log(`📊 Comerciantes encontrados: ${comerciantes.length}`);\n\nif (comerciantes.length === 0) {\n  throw new Error('❌ No se encontraron comerciantes. Verifica la hoja \"Configuracion_Maestra\".');\n}\n\n// Fechas de referencia (Hoy y Ayer)\nconst hoy = new Date();\nconst ayer = new Date(hoy);\nayer.setUTCHours(0, 0, 0, 0); \nayer.setUTCDate(ayer.getUTCDate() - 1); \n\nconst formatoSheet = (fecha) => {\n  const dia = fecha.getUTCDate().toString().padStart(2, '0');\n  const mes = (fecha.getUTCMonth() + 1).toString().padStart(2, '0');\n  const anio = fecha.getUTCFullYear();\n  return `${dia}/${mes}/${anio}`;\n};\n\nconst resultados = comerciantes.map(comerciante => {\n  // 1. Intentamos PARSEAR la fecha de control\n  let fechaUltimoReporteObj = parseDate(comerciante.Fecha_Ultimo_Reporte);\n\n  // 2. Si el parseo falla, usamos el default\n  if (!fechaUltimoReporteObj) {\n    const parts = FECHA_DEFAULT_INICIO_STR.split('-');\n    fechaUltimoReporteObj = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));\n  }\n\n  // 3. Calculamos la fecha de inicio del reporte (Último reporte + 1 día)\n  const fechaDesde = new Date(fechaUltimoReporteObj);\n  fechaDesde.setUTCDate(fechaDesde.getUTCDate() + 1);\n\n  // 4. Calculamos los días pendientes\n  const msPorDia = 1000 * 60 * 60 * 24;\n  const ayerMedianoche = ayer.getTime(); \n  const ultimoReporteMedianoche = fechaUltimoReporteObj.getTime();\n\n  const diasSinReportar = Math.floor((ayerMedianoche - ultimoReporteMedianoche) / msPorDia);\n  \n  console.log(`🔎 PROCESANDO ${comerciante.ID_Comerciante}:`);\n  console.log(` - Último Reporte: ${comerciante.Fecha_Ultimo_Reporte}`);\n  console.log(` - Fecha Desde: ${formatoSheet(fechaDesde)}`);\n  console.log(` - Días pendientes: ${diasSinReportar}`);\n\n  if (diasSinReportar <= 0) {\n    console.log(` ⏭️ SALTAR: Ya reportado`);\n    return null;\n  }\n\n  return {\n    ID_Comerciante: comerciante.ID_Comerciante,\n    Nombre_Local: comerciante.Nombre_Local,\n    Email_Destino: comerciante.Email_Destino,\n    Fecha_Desde: formatoSheet(fechaDesde),\n    Fecha_Hasta: formatoSheet(ayer),\n    Fecha_Hasta_ISO: ayer.toISOString().split('T')[0],\n    Dias_a_Reportar: diasSinReportar,\n    row_number: comerciante.row_number\n  };\n}).filter(Boolean);\n\nif (resultados.length === 0) {\n  throw new Error('⏭️ No hay reportes pendientes para procesar.');\n}\n\nreturn resultados;"
       },
-      "id": "73bf5398-a3b3-472d-abab-a6cc982f19c9",
+      "id": "40aae5c0-8425-4392-9c38-c88cb801dce2",
       "name": "Calcular_Fechas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -336,
-        5104
+        2624,
+        0
       ],
       "notes": "Calcula de manera segura y en UTC la Fecha_Desde (último reporte + 1 día) y la Fecha_Hasta (Ayer). Filtra comerciantes sin reportes pendientes."
     },
@@ -68,13 +68,13 @@
       "parameters": {
         "options": {}
       },
-      "id": "e32b75bf-f1ed-4e2b-a455-53b0000d50a8",
+      "id": "2e4c22e4-4013-428b-b0b7-f0955505fb98",
       "name": "Loop_Comerciantes",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -112,
-        5104
+        2848,
+        0
       ],
       "notes": "Divide los comerciantes que requieren reportes en lotes individuales (o uno a la vez) para procesar el flujo por separado."
     },
@@ -96,18 +96,18 @@
         },
         "options": {}
       },
-      "id": "75b4af02-67fe-428c-abc9-3141fb03b8a3",
+      "id": "96b2d9ae-d9c0-4e83-b978-436fb93e4ac6",
       "name": "Leer_Reporte_Plano1",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        560,
-        5024
+        3520,
+        -80
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "nGEjO4FawppuNRsB",
-          "name": "Google Sheets account 3"
+          "id": "WAbbEq1J0INVKkVA",
+          "name": "Google Sheets account"
         }
       },
       "notes": "Lee la información de reportes planos, que ahora debería estar actualizada tras el cálculo en la hoja."
@@ -116,13 +116,13 @@
       "parameters": {
         "jsCode": "// Ver exactamente qué datos tenemos\nconsole.log('='.repeat(80));\nconsole.log('🔍 DEBUG - DATOS ANTES DE ACTUALIZAR');\nconsole.log('='.repeat(80));\n\nconst items = $input.all();\n\nconsole.log(`\\n📊 Número de items recibidos: ${items.length}`);\n\nif (items.length === 0) {\n  console.log('⚠️ NO HAY ITEMS - Verifica el nodo anterior');\n  return items;\n}\n\n// Tomar el primer item\nconst datos = items[0].json;\n\nconsole.log('\\n📋 Datos recibidos:');\nconsole.log(JSON.stringify(datos, null, 2));\n\nconsole.log('\\n🔍 Campos específicos:');\nconsole.log('  ID_COMERCIANTE:', datos.ID_COMERCIANTE || datos.ID_Comerciante);\nconsole.log('  FECHA_HASTA:', datos.FECHA_HASTA);\nconsole.log('  FECHA_HASTA_ISO:', datos.FECHA_HASTA_ISO);\nconsole.log('  Email_Destino:', datos.Email_Destino);\nconsole.log('  Nombre_Local:', datos.Nombre_Local);\n\n// Verificar si FECHA_HASTA existe\nif (!datos.FECHA_HASTA && !datos.Fecha_Hasta) {\n  console.log('\\n❌ ERROR: FECHA_HASTA no existe');\n}\n\n// Verificar si FECHA_HASTA_ISO existe\nif (!datos.FECHA_HASTA_ISO && !datos.Fecha_Hasta_ISO) {\n  console.log('\\n❌ ERROR: FECHA_HASTA_ISO no existe');\n}\n\nconsole.log('='.repeat(80));\n\n// Pasar los datos sin modificar\nreturn items;"
       },
-      "id": "6cc8c1dc-30a4-4309-a214-3b92238a6e8e",
+      "id": "9c9a33b7-f05a-415a-ab53-885dc5263451",
       "name": "DEBUG_Ver_Datos1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1008,
-        5024
+        3968,
+        -80
       ],
       "notes": "Nodo de depuración: verifica que los campos clave, especialmente FECHA_HASTA_ISO, estén presentes antes de la actualización de la base de datos."
     },
@@ -138,15 +138,15 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1232,
-        5024
+        4192,
+        -80
       ],
-      "id": "d1c6be6b-91df-472c-b5f1-68a97ff8c636",
+      "id": "ecfdf1ea-3310-479f-87cb-607f2a1c56b1",
       "name": "Enviar_Mensaje",
       "webhookId": "2080c9e3-3178-4f00-9ad0-ffa6eb79e7eb",
       "credentials": {
         "gmailOAuth2": {
-          "id": "tZKZ8j8HhuxvBSZF",
+          "id": "QQTzXBhgix2IhKE4",
           "name": "Gmail account"
         }
       },
@@ -159,10 +159,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        784,
-        5024
+        3744,
+        -80
       ],
-      "id": "9d7c0a70-55e9-40a6-a905-976b385d5f80",
+      "id": "525b34c4-ce63-46a9-8e7f-aeaf99aa3907",
       "name": "Generar_HTML_Email"
     },
     {
@@ -194,10 +194,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1456,
-        5024
+        4416,
+        -80
       ],
-      "id": "f10b09f1-a973-4395-968d-219b5fd7b53c",
+      "id": "7e5b0cfd-cc0f-44fd-bbd2-860bdaea20cc",
       "name": "Pasar_Datos_Loop\""
     },
     {
@@ -224,13 +224,13 @@
           }
         }
       },
-      "id": "fba4205d-540d-4498-aa66-dff8cff5ce26",
+      "id": "6500e40f-3e37-44b5-9a70-250b73505d27",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        -272,
-        4064
+        2896,
+        -944
       ]
     },
     {
@@ -243,13 +243,13 @@
           "allowedOrigins": "*"
         }
       },
-      "id": "33a02c24-21a1-4e22-ac5b-d33ef268fb10",
+      "id": "32db116d-ec92-4097-9f42-c69e103c585b",
       "name": "Webhook - POST Transaccion",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -944,
-        4352
+        2240,
+        -624
       ],
       "webhookId": "guardar-transaccion"
     },
@@ -257,13 +257,13 @@
       "parameters": {
         "jsCode": "console.log('==== DEBUG WEBHOOK ====');\nconsole.log('JSON COMPLETO:', JSON.stringify($json, null, 2));\nconsole.log('BODY:', JSON.stringify($json.body, null, 2));\nconsole.log('QUERY:', JSON.stringify($json.query, null, 2));\nconsole.log('HEADERS:', JSON.stringify($json.headers, null, 2));\nconsole.log('=======================');\n\nconst body = $json.body || {};\nconst query = $json.query || {};\n\n// 🔹 Normalizar monto\nconst parseMonto = (valor) => {\n  if (!valor) return 0;\n  if (typeof valor === 'number') return valor;\n\n  return Number(\n    valor\n      .toString()\n      .replace(/\\./g, '')\n      .replace(',', '.')\n  ) || 0;\n};\n\n// 🔹 Timestamp Argentina\nconst now = new Date();\nconst timestamp = now.toLocaleString('sv-SE', {\n  timeZone: 'America/Argentina/Buenos_Aires',\n  year: 'numeric',\n  month: '2-digit',\n  day: '2-digit',\n  hour: '2-digit',\n  minute: '2-digit',\n  second: '2-digit',\n  hour12: false\n});\n\n// 🔴 ID REAL (prioridad clara)\nconst ID_Comerciante =\n  body.ID_Comerciante ||\n  body.id_comerciante ||\n  query.id ||\n  query.ID_Comerciante ||\n  '';\n\nif (!ID_Comerciante) {\n  console.warn('⚠️ ID_Comerciante NO recibido');\n}\n\nreturn [{\n  json: {\n    Marca_temporal: timestamp,\n    ID_Comerciante,\n    Tipo_Transaccion: body.Tipo_Transaccion || body.tipo || '',\n    Monto_Original: parseMonto(body.Monto_Original || body.monto),\n    Metodo_Cobro: body.Metodo_Cobro || body.metodo || '',\n    Categoria_Gasto: body.Categoria_Gasto || body.categoria || '',\n    Descripcion: body.Descripcion || body.descripcion || ''\n  }\n}];\n"
       },
-      "id": "38ea6d15-ee3f-4265-ad59-82300f6aebf6",
+      "id": "0f2f0aaf-5147-4f6f-9417-95d24f552cbb",
       "name": "Code - Preparar Datos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -720,
-        4352
+        2464,
+        -624
       ]
     },
     {
@@ -395,18 +395,18 @@
         },
         "options": {}
       },
-      "id": "472edb19-11ac-4de5-b491-a5efddbea745",
+      "id": "cd77ddfd-c356-4241-957e-7064b2512981",
       "name": "Google Sheets - Guardar Transaccion",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.4,
       "position": [
-        -496,
-        4352
+        2688,
+        -624
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "nGEjO4FawppuNRsB",
-          "name": "Google Sheets account 3"
+          "id": "WAbbEq1J0INVKkVA",
+          "name": "Google Sheets account"
         }
       }
     },
@@ -433,13 +433,13 @@
           }
         }
       },
-      "id": "bc7c4200-3ab8-418a-af2f-d11f7df7e320",
+      "id": "eb13f196-2673-4bd3-aaa5-951d905ab9c5",
       "name": "Respond to Webhook1",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        -272,
-        4352
+        2912,
+        -624
       ]
     },
     {
@@ -451,10 +451,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1184,
-        4000
+        2000,
+        -1008
       ],
-      "id": "68b943f5-ab03-4216-b04c-eb64e45d5272",
+      "id": "1d95d244-8fcb-44a2-8170-e2e7dae6f2d1",
       "name": "Sticky Note"
     },
     {
@@ -467,10 +467,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1184,
-        4288
+        2000,
+        -720
       ],
-      "id": "7585d23c-f1db-46b7-9a48-671aff070e20",
+      "id": "2e1caa41-b448-4cd5-b2f2-31763af2e84c",
       "name": "Sticky Note1"
     },
     {
@@ -483,23 +483,11 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1184,
-        4576
+        2000,
+        -448
       ],
-      "id": "6cb3accc-1d6a-4628-8c35-c1be3aba340d",
+      "id": "a334b1f3-9300-47b8-a46c-4e5db10db0a5",
       "name": "Sticky Note2"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        -896,
-        5232
-      ],
-      "id": "568b8f6c-4c07-49ed-8d2b-abc3571c8b81",
-      "name": "INICIAR_FLUJO_MANUALMENTE",
-      "disabled": true
     },
     {
       "parameters": {
@@ -511,13 +499,13 @@
           ]
         }
       },
-      "id": "c9f3843b-41f3-4af7-801d-d6f3c1b441b3",
+      "id": "41ee9e51-2bb9-4d37-b01b-b145bb9726a4",
       "name": "INICIA 8 AM DE CADA DIA",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -896,
-        5056
+        2176,
+        0
       ],
       "notes": "Activador programado para iniciar la generación de reportes diariamente a las 8 AM."
     },
@@ -544,19 +532,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        112,
-        5120
+        3072,
+        -80
       ],
-      "id": "f1e80324-7d60-472c-b6d2-acbdf9dc9fae",
+      "id": "03b85b92-9908-42f9-8fdd-b599c54ac9d3",
       "name": "HTTP Request",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "nGEjO4FawppuNRsB",
-          "name": "Google Sheets account 3"
-        },
         "googleSheetsTriggerOAuth2Api": {
-          "id": "LknJzkFfroeCpfa3",
-          "name": "Google Sheets Trigger account 3"
+          "id": "2fZijmcshkpt1h4P",
+          "name": "Google Sheets Trigger account"
         }
       }
     },
@@ -664,35 +648,35 @@
         },
         "options": {}
       },
-      "id": "a5cfffb8-1d14-4a07-a13e-09b5b07c5eb2",
+      "id": "23b2d246-9f87-4fb9-a639-9760784fb1fe",
       "name": "Actualizar_Fecha_Ultimo_Reporte2",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        1680,
-        5104
+        4640,
+        0
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "nGEjO4FawppuNRsB",
-          "name": "Google Sheets account 3"
+          "id": "WAbbEq1J0INVKkVA",
+          "name": "Google Sheets account"
         }
       },
       "notes": "Actualiza la hoja 'Configuracion_Maestra' con la Fecha_Hasta_ISO, asegurando que el flujo sepa dónde comenzar el próximo reporte."
     },
     {
       "parameters": {
-        "content": "WORFLOW PRINCIPAL",
-        "height": 544,
+        "content": "WORFLOW PRINCIPAL-REPORTE DIARIO 8AM",
+        "height": 384,
         "width": 3200
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1184,
-        4944
+        2000,
+        -144
       ],
-      "id": "625cc96e-8995-4eae-9b84-24dbd493ae11",
+      "id": "2add0a4b-122c-4256-acb4-7da2f19dac6a",
       "name": "Sticky Note3"
     },
     {
@@ -730,15 +714,15 @@
       "type": "n8n-nodes-base.googleSheetsTrigger",
       "typeVersion": 1,
       "position": [
-        -912,
-        4640
+        2240,
+        -400
       ],
-      "id": "f43663cd-b794-46c4-80bb-b864b936ff1b",
+      "id": "553ccb74-05cb-4068-9544-58117ec56775",
       "name": "Detectar nuevos clientes",
       "credentials": {
         "googleSheetsTriggerOAuth2Api": {
-          "id": "LknJzkFfroeCpfa3",
-          "name": "Google Sheets Trigger account 3"
+          "id": "2fZijmcshkpt1h4P",
+          "name": "Google Sheets Trigger account"
         }
       }
     },
@@ -836,58 +820,58 @@
         },
         "options": {}
       },
-      "id": "73a51222-a710-4230-824f-5dbdcfe63f45",
+      "id": "6a04a027-b2a3-4928-97b2-c39ef1cc17e3",
       "name": "Escribir Link",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.4,
       "position": [
-        -272,
-        4640
+        2912,
+        -400
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "nGEjO4FawppuNRsB",
-          "name": "Google Sheets account 3"
+          "id": "WAbbEq1J0INVKkVA",
+          "name": "Google Sheets account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Generar link para el comerciante\nconst comerciante = $json;\nconst id = comerciante.ID_Comerciante;\n\nconst link = `https://arnaldoayalaestratega.com/transacciones/?id=${id}`;\n\nreturn [{\n  json: {\n    ...comerciante,\n    Link_Generado: link,\n    row_number: comerciante.row_number\n  }\n}];"
+        "jsCode": "// Generar link para el comerciante\nconst comerciante = $json;\nconst id = comerciante.ID_Comerciante;\nconst link = `https://arnaldoayalaestratega.com/pos/?id=${id}`;\nreturn [{\n  json: {\n    ...comerciante,\n    Link_Generado: link,\n    row_number: comerciante.row_number\n  }\n}];"
       },
-      "id": "c264883c-d55f-4d0a-8138-f0a3656fbe69",
+      "id": "3f41dca3-0d91-4a42-8d76-1eeb97f009e1",
       "name": "Generar Link",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -512,
-        4640
+        2688,
+        -400
       ]
     },
     {
       "parameters": {
         "jsCode": "// Filtrar solo comerciantes sin link\nconst items = $input.all();\n\nconst sinLink = items.filter(item => {\n  const link = item.json.Link_App || '';\n  return link.trim() === '' && item.json.ID_Comerciante;\n});\n\nif (sinLink.length === 0) {\n  // No hay comerciantes nuevos\n  return [];\n}\n\nreturn sinLink;"
       },
-      "id": "607f2240-27a1-49df-864e-ca74bfc000b8",
+      "id": "353341fb-0509-42a4-9527-3318614b98e0",
       "name": "Filtrar Sin Link",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -720,
-        4640
+        2464,
+        -400
       ]
     },
     {
       "parameters": {
         "jsCode": "// Preparar mensaje de bienvenida mejorado\nconst comerciante = $input.item.json;\n\nconst mensaje = `\n<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 10px;\">\n  \n  <h2 style=\"color: #2c3e50; text-align: center;\">🎉 ¡Bienvenido/a ${comerciante.Nombre_Local}!</h2>\n  \n  <p style=\"font-size: 16px; color: #34495e; line-height: 1.6;\">\n    Hola, soy <strong>Arnaldo Ayala</strong>, y me da mucho gusto tenerte en el sistema de registro de transacciones. \n    Este sistema fue diseñado especialmente para hacer tu vida más fácil y ayudarte a tener control total sobre tu negocio. 📊\n  </p>\n\n  <div style=\"background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3498db;\">\n    <h3 style=\"color: #3498db; margin-top: 0;\">🔗 Tu Acceso Personalizado</h3>\n    <p style=\"font-size: 16px; color: #34495e; margin: 10px 0;\">\n      Este es tu link único para registrar transacciones:\n    </p>\n    <a href=\"${comerciante.Link_App}\" \n       style=\"display: inline-block; background-color: #3498db; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0;\">\n      🚀 Acceder al Sistema\n    </a>\n    <p style=\"font-size: 14px; color: #7f8c8d; margin-top: 10px;\">\n      💡 <strong>Tip:</strong> Guarda este link en los favoritos de tu celular para acceder rápidamente.\n    </p>\n  </div>\n\n  <div style=\"background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;\">\n    <h3 style=\"color: #27ae60;\">✅ ¿Qué puedes hacer con este sistema?</h3>\n    <ul style=\"font-size: 15px; color: #34495e; line-height: 1.8;\">\n      <li>📈 <strong>Registrar tus ingresos</strong> de forma rápida y sencilla (efectivo, tarjeta, transferencia, fiado)</li>\n      <li>💸 <strong>Registrar tus gastos</strong> categorizados (proveedores, servicios, alquiler, sueldos, otros)</li>\n      <li>📊 <strong>Recibir reportes diarios automáticos</strong> todos los días a las <strong>8:00 AM</strong> con:\n        <ul style=\"margin-top: 8px;\">\n          <li>Resumen de ingresos y gastos del día anterior</li>\n          <li>Ganancias netas calculadas automáticamente</li>\n          <li>Desglose detallado por categoría</li>\n        </ul>\n      </li>\n      <li>📱 <strong>Acceso desde cualquier dispositivo</strong> (celular, tablet, computadora)</li>\n    </ul>\n  </div>\n\n  <div style=\"background-color: #fffbea; padding: 15px; border-radius: 8px; border-left: 4px solid #f39c12; margin: 20px 0;\">\n    <p style=\"font-size: 15px; color: #34495e; margin: 0;\">\n      <strong>📧 Importante:</strong> Revisa tu bandeja de entrada todos los días a las <strong>8:00 AM</strong>. \n      Ahí recibirás tu reporte diario con todos los números de tu negocio del día anterior.\n    </p>\n  </div>\n\n  <div style=\"background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;\">\n    <h3 style=\"color: #e74c3c;\">📞 ¿Necesitas ayuda?</h3>\n    <p style=\"font-size: 15px; color: #34495e; line-height: 1.6;\">\n      Estoy aquí para lo que necesites. Si tienes alguna duda, problema o sugerencia, no dudes en contactarme:\n    </p>\n    <p style=\"font-size: 16px; color: #34495e; margin: 10px 0;\">\n      📱 <strong>WhatsApp:</strong> \n      <a href=\"https://wa.me/5493765384843\" style=\"color: #25D366; text-decoration: none; font-weight: bold;\">\n        +54 9 3765 38-4843\n      </a>\n    </p>\n    <p style=\"font-size: 16px; color: #34495e; margin: 10px 0;\">\n      🌐 <strong>Web:</strong> \n      <a href=\"https://arnaldoayalaestratega.com\" style=\"color: #3498db; text-decoration: none;\">\n        arnaldoayalaestratega.com\n      </a>\n    </p>\n  </div>\n\n  <div style=\"text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #ecf0f1;\">\n    <p style=\"font-size: 15px; color: #34495e; margin: 10px 0;\">\n      ¡Que tengas mucho éxito con tu negocio! 🚀\n    </p>\n    <p style=\"font-size: 16px; color: #2c3e50; font-weight: bold; margin: 5px 0;\">\n      Arnaldo Ayala\n    </p>\n    <p style=\"font-size: 14px; color: #7f8c8d; margin: 5px 0;\">\n      Estratega en IA y Marketing\n    </p>\n  </div>\n\n  <div style=\"text-align: center; margin-top: 20px; font-size: 12px; color: #95a5a6;\">\n    <p>Este es un mensaje automático del sistema de gestión de transacciones.</p>\n    <p>Si recibiste este correo por error, por favor ignóralo.</p>\n  </div>\n\n</div>\n`;\n\nreturn {\n  json: {\n    ...comerciante,\n    mensaje_bienvenida: mensaje\n  }\n};"
       },
-      "id": "1d994bd9-5698-4fc6-9e44-73d585ed8506",
+      "id": "986cf826-50ae-4133-9368-572c31bcb172",
       "name": "Preparar Mensaje",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -64,
-        4640
+        3136,
+        -400
       ]
     },
     {
@@ -899,19 +883,19 @@
           "appendAttribution": false
         }
       },
-      "id": "d83490ab-33c7-4512-bd17-7c07c50c6336",
+      "id": "90997ba5-54ca-4d3b-8afb-80b5832efb6b",
       "name": "Enviar Bienvenida",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        160,
-        4640
+        3360,
+        -400
       ],
       "webhookId": "ca6f392b-789a-4335-960d-cb876e172233",
       "credentials": {
         "gmailOAuth2": {
-          "id": "1AsE9IcrZTJqSUb1",
-          "name": "Gmail account 2"
+          "id": "QQTzXBhgix2IhKE4",
+          "name": "Gmail account"
         }
       }
     },
@@ -941,18 +925,18 @@
         },
         "options": {}
       },
-      "id": "0a69a89f-4779-416a-a530-7b749d8c8fba",
+      "id": "dff62490-6f17-4202-b9ab-9bf08832d838",
       "name": "Leer Comerciante",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.4,
       "position": [
-        -720,
-        4064
+        2448,
+        -944
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "nGEjO4FawppuNRsB",
-          "name": "Google Sheets account 3"
+          "id": "WAbbEq1J0INVKkVA",
+          "name": "Google Sheets account"
         }
       }
     },
@@ -960,13 +944,13 @@
       "parameters": {
         "jsCode": "// Usamos el operador || para evitar fallos si el nombre varía\nconst datos = $json;\n\nreturn {\n  nombre: datos[\"Nombre_Local\"] || datos[\"Nombre Local\"] || \"Local Sin Nombre\", \n  id: datos[\"ID_Comerciante\"] || datos[\"ID\"] || datos[\"id\"]\n};"
       },
-      "id": "ece0cc4b-f4da-400d-bebf-0949e14782c0",
+      "id": "cff0814c-cfe9-48b6-ab36-02ed2a308f18",
       "name": "Formatear Respuesta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -496,
-        4064
+        2672,
+        -944
       ]
     },
     {
@@ -977,15 +961,280 @@
           "allowedOrigins": "*"
         }
       },
-      "id": "2eea6580-09dd-475d-8eda-39119620f5bb",
+      "id": "19899a5c-d100-488b-9224-cba08ebc479a",
       "name": "Webhook - GET Comerciante",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -944,
-        4064
+        2224,
+        -944
       ],
       "webhookId": "obtener-comerciante"
+    },
+    {
+      "parameters": {
+        "content": "WORFLOW REPORTE MANUAL A PEDIDO DEL CLIENTE",
+        "height": 336,
+        "width": 3200
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        256
+      ],
+      "id": "822576b7-a3b1-4b34-b77b-760743612f32",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-comerciante",
+              "name": "ID_Comerciante",
+              "value": "C001",
+              "type": "string"
+            },
+            {
+              "id": "fecha-desde",
+              "name": "Fecha_Desde",
+              "value": "10/12/2025",
+              "type": "string"
+            },
+            {
+              "id": "fecha-hasta",
+              "name": "Fecha_Hasta",
+              "value": "21/12/2025",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2c6c7d0c-973b-47b0-8e3d-a2d5092b912d",
+      "name": "SET - Parámetros",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2112,
+        368
+      ],
+      "notes": "AQUÍ PONES: ID del comerciante, Fecha_Desde, Fecha_Hasta\nEjemplo:\nC001\n01/12/2024\n22/12/2024"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1fC_1rTsSdJduCEZ1plTcqtaNE_8pOXAJio3japqHMGk",
+          "mode": "list",
+          "cachedResultName": "Base_de_Datos_Comerciantes_N8N_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fC_1rTsSdJduCEZ1plTcqtaNE_8pOXAJio3japqHMGk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "663141956",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "853c862c-0464-41a9-a567-c70f3b419fd5",
+      "name": "Buscar Datos Comerciante",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2336,
+        368
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WAbbEq1J0INVKkVA",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Busca en Configuracion_Maestra el Nombre_Local y Email_Destino del comerciante"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1fC_1rTsSdJduCEZ1plTcqtaNE_8pOXAJio3japqHMGk",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 486110536,
+          "mode": "list",
+          "cachedResultName": "BD_Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fC_1rTsSdJduCEZ1plTcqtaNE_8pOXAJio3japqHMGk/edit#gid=486110536"
+        },
+        "options": {}
+      },
+      "id": "1a1cfb86-394d-4b91-bdfe-9c4ee5c561b9",
+      "name": "Leer Todas Transacciones",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2560,
+        368
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WAbbEq1J0INVKkVA",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Lee TODAS las transacciones de Respuestas_Formulario"
+    },
+    {
+      "parameters": {
+        "jsCode": "// VERSIÓN ULTRA SIMPLE - SIN FILTROS DE FECHA\nconst params = $('SET - Parámetros').first().json;\nconst id_comerciante = params.ID_Comerciante;\n\nconst comerciante = $('Buscar Datos Comerciante').first().json;\nconst nombre = comerciante.Nombre_Local || 'Comerciante';\nconst email = comerciante.Email_Destino || '';\n\nconst transacciones = $('Leer Todas Transacciones').all();\n\nconsole.log('📦 Total transacciones:', transacciones.length);\nconsole.log('🔍 Buscando ID:', id_comerciante);\n\n// FILTRAR SOLO POR ID (SIN FECHAS POR AHORA)\nconst filtradas = transacciones.filter(t => t.json.ID_Comerciante === id_comerciante);\n\nconsole.log('✅ Encontradas con ese ID:', filtradas.length);\n\n// CALCULAR TOTALES\nlet total_ingresos = 0;\nlet total_gastos = 0;\n\nfiltradas.forEach(item => {\n  const t = item.json;\n  const monto = parseFloat(t.Monto_Original) || 0;\n  const tipo = (t.Tipo_Transaccion || '').toUpperCase();\n  \n  console.log(`  - Tipo: \"${tipo}\" Monto: ${monto}`);\n  \n  if (tipo === 'INGRESO' || tipo === 'INGRESOS') {\n    total_ingresos += monto;\n  } else if (tipo === 'GASTO' || tipo === 'GASTOS') {\n    total_gastos += monto;\n  }\n});\n\nconsole.log('\\n💰 RESULTADOS (SIN FILTRO DE FECHAS):');\nconsole.log('  Ingresos:', total_ingresos);\nconsole.log('  Gastos:', total_gastos);\n\nreturn [{\n  json: {\n    ID_Comerciante: id_comerciante,\n    Nombre_Local: nombre,\n    Email_Destino: email,\n    Fecha_Desde: params.Fecha_Desde,\n    Fecha_Hasta: params.Fecha_Hasta,\n    Total_Venta: total_ingresos,\n    Total_Gastos: total_gastos,\n    Cant_Transacciones: filtradas.length,\n    Ganancia_Neta: total_ingresos - total_gastos,\n    Desglose_Metodos: {},\n    Desglose_Categorias: {},\n    Transacciones_Detalle: filtradas.map(i => i.json)\n  }\n}];"
+      },
+      "id": "3ef32633-ad8a-4573-8b86-90c81afc3730",
+      "name": "Filtrar y Calcular",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2784,
+        368
+      ],
+      "notes": "Filtra transacciones por ID y fechas, calcula totales y desgloses"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1fC_1rTsSdJduCEZ1plTcqtaNE_8pOXAJio3japqHMGk",
+          "mode": "list",
+          "cachedResultName": "Base_de_Datos_Comerciantes_N8N_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fC_1rTsSdJduCEZ1plTcqtaNE_8pOXAJio3japqHMGk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "837859996",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID_Comerciante": "={{ $json.ID_Comerciante }}",
+            "Nombre_Local": "={{ $json.Nombre_Local }}",
+            "Email_Destino": "={{ $json.Email_Destino }}",
+            "Fecha_Desde": "={{ $json.Fecha_Desde }}",
+            "Fecha_Hasta": "={{ $json.Fecha_Hasta }}"
+          },
+          "matchingColumns": [
+            "ID_Comerciante"
+          ],
+          "schema": [
+            {
+              "id": "ID_Comerciante",
+              "displayName": "ID_Comerciante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nombre_Local",
+              "displayName": "Nombre_Local",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email_Destino",
+              "displayName": "Email_Destino",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha_Desde",
+              "displayName": "Fecha_Desde",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha_Hasta",
+              "displayName": "Fecha_Hasta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "d5af6d33-c0b3-4fae-b131-6f450569010d",
+      "name": "Escribir en Reporte_Manual",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3008,
+        368
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WAbbEq1J0INVKkVA",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Escribe o actualiza la fila en Reporte_Manual con los resultados calculados"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\n\n// Función auxiliar para formatear números de forma segura\nconst formatMonto = (valor) => {\n  const num = parseFloat(valor) || 0;\n  return num.toLocaleString('es-AR');\n};\n\n// Validar que existen los datos necesarios\nif (!data.ID_Comerciante) {\n  throw new Error('❌ Faltan datos del comerciante');\n}\n\n// Valores seguros con fallbacks\nconst total_ingresos = formatMonto(data.Total_Ingresos);\nconst total_gastos = formatMonto(data.Total_Gastos);\nconst ganancia_neta = formatMonto(data.Ganancia_Neta);\nconst cant_transacciones = data.Cant_Transacciones || 0;\nconst nombre = data.Nombre_Local || 'Comerciante';\nconst fecha_desde = data.Fecha_Desde || 'N/A';\nconst fecha_hasta = data.Fecha_Hasta || 'N/A';\n\n// Validar desgloses\nconst desglose_metodos = data.Desglose_Metodos || {};\nconst desglose_categorias = data.Desglose_Categorias || {};\n\n// Generar HTML de desgloses\nconst htmlMetodos = Object.keys(desglose_metodos).length > 0 \n  ? Object.entries(desglose_metodos).map(([metodo, total]) => \n      `<tr><td>${metodo}</td><td>$${formatMonto(total)}</td></tr>`\n    ).join('')\n  : '<tr><td colspan=\"2\" style=\"text-align:center;color:#6c757d;\">Sin datos</td></tr>';\n\nconst htmlCategorias = Object.keys(desglose_categorias).length > 0\n  ? Object.entries(desglose_categorias).map(([categoria, total]) => \n      `<tr><td>${categoria}</td><td>$${formatMonto(total)}</td></tr>`\n    ).join('')\n  : '<tr><td colspan=\"2\" style=\"text-align:center;color:#6c757d;\">Sin datos</td></tr>';\n\n// Determinar clase de color para ganancia\nconst gananciaNeta = parseFloat(data.Ganancia_Neta) || 0;\nconst colorGanancia = gananciaNeta >= 0 ? 'positive' : 'negative';\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <style>\n    body { \n      font-family: Arial, sans-serif; \n      background-color: #f4f4f4; \n      padding: 20px; \n      margin: 0;\n    }\n    .container { \n      max-width: 600px; \n      margin: 0 auto; \n      background: white; \n      padding: 30px; \n      border-radius: 10px; \n      box-shadow: 0 2px 10px rgba(0,0,0,0.1);\n    }\n    .header { \n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); \n      color: white; \n      padding: 30px 20px; \n      border-radius: 10px; \n      text-align: center; \n      margin-bottom: 30px;\n    }\n    .header h1 {\n      margin: 0 0 10px 0;\n      font-size: 28px;\n    }\n    .header p {\n      margin: 5px 0;\n      opacity: 0.9;\n    }\n    .summary { \n      display: flex; \n      justify-content: space-around; \n      margin: 30px 0; \n      gap: 10px;\n    }\n    .summary-box { \n      text-align: center; \n      padding: 20px; \n      background: #f8f9fa; \n      border-radius: 10px; \n      flex: 1;\n      min-width: 0;\n    }\n    .summary-box p {\n      margin: 0 0 10px 0;\n      color: #6c757d;\n      font-size: 14px;\n      font-weight: 600;\n    }\n    .summary-box h3 { \n      margin: 0; \n      font-size: 24px;\n      word-wrap: break-word;\n    }\n    .positive { color: #28a745; }\n    .negative { color: #dc3545; }\n    .neutral { color: #6c757d; }\n    .section { \n      margin: 30px 0; \n    }\n    .section h2 { \n      border-bottom: 2px solid #667eea; \n      padding-bottom: 10px; \n      margin-bottom: 20px;\n      color: #333;\n    }\n    table { \n      width: 100%; \n      border-collapse: collapse; \n      margin: 10px 0; \n    }\n    th, td { \n      padding: 12px; \n      text-align: left; \n      border-bottom: 1px solid #ddd; \n    }\n    th { \n      background: #667eea; \n      color: white; \n      font-weight: 600;\n    }\n    tr:last-child td {\n      border-bottom: none;\n    }\n    .footer { \n      text-align: center; \n      margin-top: 40px; \n      padding-top: 20px;\n      border-top: 1px solid #ddd;\n      color: #6c757d; \n      font-size: 14px; \n    }\n    .footer p {\n      margin: 5px 0;\n    }\n    .footer strong {\n      color: #333;\n    }\n    @media only screen and (max-width: 600px) {\n      .summary {\n        flex-direction: column;\n      }\n      .summary-box {\n        margin-bottom: 10px;\n      }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>📊 Reporte Personalizado</h1>\n      <p><strong>${nombre}</strong></p>\n      <p>Período: ${fecha_desde} - ${fecha_hasta}</p>\n    </div>\n\n    <div class=\"summary\">\n      <div class=\"summary-box\">\n        <p>Total Ingresos</p>\n        <h3 class=\"positive\">$${total_ingresos}</h3>\n      </div>\n      <div class=\"summary-box\">\n        <p>Total Gastos</p>\n        <h3 class=\"negative\">$${total_gastos}</h3>\n      </div>\n      <div class=\"summary-box\">\n        <p>Ganancia Neta</p>\n        <h3 class=\"${colorGanancia}\">$${ganancia_neta}</h3>\n      </div>\n    </div>\n\n    <div class=\"section\">\n      <h2>💰 Desglose de Ingresos por Método</h2>\n      <table>\n        <tr>\n          <th>Método de Cobro</th>\n          <th>Total</th>\n        </tr>\n        ${htmlMetodos}\n      </table>\n    </div>\n\n    <div class=\"section\">\n      <h2>💸 Desglose de Gastos por Categoría</h2>\n      <table>\n        <tr>\n          <th>Categoría</th>\n          <th>Total</th>\n        </tr>\n        ${htmlCategorias}\n      </table>\n    </div>\n\n    <div class=\"section\">\n      <h2>📋 Resumen</h2>\n      <p><strong>Total de transacciones:</strong> ${cant_transacciones}</p>\n      <p><strong>Período analizado:</strong> ${fecha_desde} - ${fecha_hasta}</p>\n    </div>\n\n    <div class=\"footer\">\n      <p>🚀 <strong>Arnaldo Ayala</strong> - Estratega en IA y Marketing</p>\n      <p>📱 WhatsApp: +54 9 3765 38-4843</p>\n      <p>🌐 <a href=\"https://arnaldoayalaestratega.com\" style=\"color: #667eea; text-decoration: none;\">arnaldoayalaestratega.com</a></p>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\nreturn [{ json: { ...data, html } }];"
+      },
+      "id": "34577a4f-a8de-4ba6-93e9-6c21b7a87741",
+      "name": "Generar HTML Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3232,
+        368
+      ],
+      "notes": "Genera el HTML del email con el reporte completo"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email_Destino }}",
+        "subject": "📊 Reporte Personalizado - {{ $json.Fecha_Desde }} a {{ $json.Fecha_Hasta }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "2ac2f572-ff90-4003-87f6-a745868f61d6",
+      "name": "Enviar Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3456,
+        368
+      ],
+      "webhookId": "a9ff1ef5-9516-45d9-b057-e833f8c71677",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QQTzXBhgix2IhKE4",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "Envía el email con el reporte al comerciante"
     }
   ],
   "pinData": {},
@@ -1134,11 +1383,6 @@
         ]
       ]
     },
-    "INICIAR_FLUJO_MANUALMENTE": {
-      "main": [
-        []
-      ]
-    },
     "HTTP Request": {
       "main": [
         [
@@ -1248,24 +1492,84 @@
           }
         ]
       ]
+    },
+    "SET - Parámetros": {
+      "main": [
+        [
+          {
+            "node": "Buscar Datos Comerciante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Datos Comerciante": {
+      "main": [
+        [
+          {
+            "node": "Leer Todas Transacciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Todas Transacciones": {
+      "main": [
+        [
+          {
+            "node": "Filtrar y Calcular",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar y Calcular": {
+      "main": [
+        [
+          {
+            "node": "Escribir en Reporte_Manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escribir en Reporte_Manual": {
+      "main": [
+        [
+          {
+            "node": "Generar HTML Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar HTML Email": {
+      "main": [
+        [
+          {
+            "node": "Enviar Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "availableInMCP": false
   },
-  "versionId": "17404113-89ed-4d59-9066-384e393be1ae",
+  "versionId": "ee6b3240-2752-4a29-a0d1-9655a3c739a2",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "131b4a9b2115ebba5fea15fd91696fb37668c68df2c0f044524f4dfa8663dfd6"
+    "instanceId": "48c66835646277c166d3afce770c81a55cbe489ac5b8e11f7bad4baedc8672a9"
   },
-  "id": "EsjRItQveO8L4cvo",
-  "tags": [
-    {
-      "updatedAt": "2025-12-09T15:26:10.338Z",
-      "createdAt": "2025-12-09T15:26:10.338Z",
-      "id": "TbfaJxQIFcJM1o2s",
-      "name": "MAESTRA"
-    }
-  ]
+  "id": "iOvGH8rLoq0f3e2b",
+  "tags": []
 }
