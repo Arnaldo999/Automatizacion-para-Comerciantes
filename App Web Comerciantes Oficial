@@ -99,11 +99,9 @@
         .user-name {
             font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: 5px;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--neon-green);
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
         }
 
         .user-id {
@@ -112,98 +110,356 @@
         }
 
         .main-buttons {
-            display: flex;
-            flex-direction: column;
+            display: grid;
             gap: 20px;
+            margin-bottom: 30px;
         }
 
         .btn-main {
-            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
-            border: none;
-            border-radius: 20px;
+            background: linear-gradient(135deg, var(--card-bg) 0%, #1e2438 100%);
+            border: 2px solid;
+            border-radius: 16px;
             padding: 30px;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: white;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-            font-family: 'Rajdhani', sans-serif;
+            transition: all 0.3s;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
-        .btn-main::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+        .btn-main.ventas {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
         }
 
-        .btn-main:active::before {
-            width: 300px;
-            height: 300px;
+        .btn-main.gastos {
+            border-color: var(--warning-red);
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
+        }
+
+        .btn-main.historial {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
         }
 
         .btn-main:active {
             transform: scale(0.95);
         }
 
-        .btn-main.ventas {
-            background: linear-gradient(135deg, var(--neon-green) 0%, var(--accent-blue) 100%);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
-        }
-
-        .btn-main.gastos {
-            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--warning-red) 100%);
-            box-shadow: 0 10px 30px rgba(184, 79, 255, 0.3);
-        }
-
         .btn-icon {
-            font-size: 2rem;
+            font-size: 2.5rem;
+        }
+
+        /* HISTORIAL STYLES */
+        .balance-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+            border: 2px solid var(--neon-green);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .balance-label {
+            font-size: 1rem;
+            color: var(--text-dim);
             margin-bottom: 10px;
+        }
+
+        .balance-amount {
+            font-size: 3rem;
+            font-weight: 900;
+            font-family: 'Orbitron', monospace;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        .balance-amount.positive {
+            color: var(--neon-green);
+        }
+
+        .balance-amount.negative {
+            color: var(--warning-red);
+        }
+
+        .balance-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .balance-item {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .balance-item-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+
+        .balance-item-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .filter-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .filter-tab {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-tab.active {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .transactions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .transaction-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .transaction-item.ingreso {
+            border-left: 4px solid var(--neon-green);
+        }
+
+        .transaction-item.gasto {
+            border-left: 4px solid var(--warning-red);
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-desc {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+
+        .transaction-meta {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .transaction-amount {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+
+        .transaction-amount.ingreso {
+            color: var(--neon-green);
+        }
+
+        .transaction-amount.gasto {
+            color: var(--warning-red);
+        }
+
+        .transaction-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit, .btn-delete {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .btn-delete {
+            background: rgba(255, 51, 102, 0.2);
+            color: var(--warning-red);
+        }
+
+        .btn-edit:active, .btn-delete:active {
+            transform: scale(0.9);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--accent-blue);
+            font-size: 1.2rem;
+        }
+
+        /* MODAL EDIT */
+        .modal-edit {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-edit.active {
+            display: flex;
+        }
+
+        .modal-edit-content {
+            background: var(--card-bg);
+            border: 2px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-edit-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
             display: block;
+            font-size: 1rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2rem;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn-modal {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-modal-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn-modal-save {
+            background: var(--accent-blue);
+            color: var(--dark-bg);
+        }
+
+        .btn-modal:active {
+            transform: scale(0.95);
         }
 
         .top-bar {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
-            padding: 10px 0;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 15px 0;
         }
 
         .btn-back {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            padding: 10px 20px;
+            border-radius: 10px;
+            padding: 12px 20px;
             color: white;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            font-family: 'Rajdhani', sans-serif;
         }
 
         .btn-back:active {
             transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.2);
         }
 
+        /* Resto de estilos de la app original (display, input-section, etc.) */
         .display-container {
-            background: linear-gradient(135deg, var(--card-bg) 0%, #1f2437 100%);
+            background: linear-gradient(135deg, var(--card-bg) 0%, #1e2438 100%);
             border: 2px solid var(--neon-green);
-            border-radius: 24px;
-            padding: 30px 20px;
+            border-radius: 20px;
+            padding: 30px;
             margin-bottom: 30px;
             text-align: center;
-            box-shadow: 0 0 40px rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
         }
 
         .display-label {
@@ -219,25 +475,14 @@
             font-size: 3rem;
             font-weight: 900;
             color: var(--neon-green);
-            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-            transition: transform 0.3s;
-        }
-
-        .display-amount.pulse {
-            animation: pulseBig 0.6s ease-out;
-        }
-
-        @keyframes pulseBig {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
         }
 
         .input-section {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
             padding: 25px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
         }
 
         .input-group {
@@ -249,64 +494,32 @@
             font-size: 1rem;
             color: var(--text-dim);
             margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-weight: 600;
         }
 
         .input-field {
             width: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            border: 2px solid rgba(0, 212, 255, 0.3);
-            border-radius: 12px;
             padding: 15px;
-            font-size: 1.3rem;
-            color: white !important;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2rem;
             font-family: 'Rajdhani', sans-serif;
             font-weight: 600;
-            transition: all 0.3s;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-            background: rgba(0, 0, 0, 0.6);
-        }
-
-        input[type="number"] {
-            color: white !important;
-            -webkit-text-fill-color: white !important;
-        }
-
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        textarea.input-field {
-            min-height: 80px;
-            resize: vertical;
-            font-size: 1.1rem;
-            color: white !important;
-            -webkit-text-fill-color: white !important;
         }
 
         .btn-add {
-            background: linear-gradient(135deg, var(--neon-green) 0%, var(--accent-blue) 100%);
-            border: none;
-            border-radius: 16px;
+            width: 100%;
             padding: 18px;
+            background: linear-gradient(135deg, var(--neon-green), #00cc70);
+            border: none;
+            border-radius: 12px;
+            color: var(--dark-bg);
             font-size: 1.2rem;
             font-weight: 700;
-            color: white;
             cursor: pointer;
-            width: 100%;
             transition: all 0.3s;
-            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
-            font-family: 'Rajdhani', sans-serif;
         }
 
         .btn-add:active {
@@ -314,13 +527,10 @@
         }
 
         .items-list-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
             padding: 20px;
-            margin-bottom: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
         }
 
         .items-header {
@@ -328,22 +538,22 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .items-title {
             font-size: 1.1rem;
-            color: var(--text-dim);
+            font-weight: 700;
+            color: var(--neon-green);
         }
 
         .items-count {
-            background: var(--accent-purple);
-            color: white;
+            background: var(--neon-green);
+            color: var(--dark-bg);
             padding: 5px 12px;
             border-radius: 20px;
             font-weight: 700;
-            font-size: 0.9rem;
         }
 
         .items-list {
@@ -356,16 +566,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0, 212, 255, 0.1);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            border-radius: 12px;
-            padding: 12px 15px;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
         }
 
         .item-price {
@@ -375,73 +578,52 @@
         }
 
         .btn-remove {
-            background: var(--warning-red);
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 51, 102, 0.2);
+            border: 1px solid var(--warning-red);
+            border-radius: 10px;
+            color: var(--warning-red);
             font-size: 1.5rem;
-            color: white;
             cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
-        }
-
-        .btn-remove:active {
-            transform: scale(0.9);
+            transition: all 0.3s;
         }
 
         .empty-items {
             text-align: center;
+            padding: 30px;
             color: var(--text-dim);
-            padding: 20px;
-            font-style: italic;
         }
 
         .action-buttons {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
             gap: 15px;
         }
 
         .btn-action {
-            flex: 1;
-            border: none;
-            border-radius: 16px;
             padding: 18px;
-            font-size: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
-            font-family: 'Rajdhani', sans-serif;
         }
 
         .btn-cancel {
-            background: rgba(255, 51, 102, 0.2);
-            border: 2px solid var(--warning-red);
-            color: var(--warning-red);
-        }
-
-        .btn-cancel:active {
-            transform: scale(0.95);
-            background: rgba(255, 51, 102, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
         }
 
         .btn-cobrar {
-            background: linear-gradient(135deg, var(--success-gold) 0%, var(--neon-green) 100%);
+            background: linear-gradient(135deg, var(--success-gold), #e6b300);
             color: var(--dark-bg);
-            box-shadow: 0 5px 20px rgba(255, 199, 0, 0.4);
         }
 
         .btn-cobrar:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-
-        .btn-cobrar:active:not(:disabled) {
-            transform: scale(0.95);
         }
 
         .modal-overlay {
@@ -451,31 +633,23 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(10, 14, 26, 0.95);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 1000;
-            animation: fadeIn 0.3s;
-        }
-
-        .modal-overlay.active {
-            display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .modal-content {
-            background: linear-gradient(135deg, var(--card-bg) 0%, #1f2437 100%);
-            border: 2px solid var(--accent-blue);
-            border-radius: 24px;
-            padding: 30px;
-            max-width: 400px;
-            width: 90%;
-            animation: scaleIn 0.3s ease-out;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        .modal-overlay.active {
+            display: flex;
         }
 
-        @keyframes scaleIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        .modal-content {
+            background: var(--card-bg);
+            border: 2px solid var(--neon-green);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
         }
 
         .modal-header {
@@ -484,9 +658,8 @@
         }
 
         .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--accent-blue);
+            font-size: 1.3rem;
+            color: var(--text-dim);
             margin-bottom: 10px;
         }
 
@@ -495,301 +668,174 @@
             font-size: 2.5rem;
             font-weight: 900;
             color: var(--success-gold);
-            text-shadow: 0 0 20px rgba(255, 199, 0, 0.5);
         }
 
         .payment-methods {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            display: grid;
+            gap: 12px;
             margin-bottom: 20px;
         }
 
         .btn-payment {
-            background: rgba(0, 212, 255, 0.1);
-            border: 2px solid var(--accent-blue);
-            border-radius: 16px;
             padding: 18px;
-            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
             font-weight: 700;
-            color: var(--accent-blue);
             cursor: pointer;
             transition: all 0.3s;
-            font-family: 'Rajdhani', sans-serif;
         }
 
         .btn-payment:active {
             transform: scale(0.95);
-            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--neon-green);
         }
 
-        .btn-modal-cancel {
-            background: rgba(255, 51, 102, 0.1);
-            border: 2px solid var(--warning-red);
-            border-radius: 16px;
-            padding: 15px;
-            font-size: 1.1rem;
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: var(--card-bg);
+            border-radius: 10px;
             font-weight: 600;
-            color: var(--warning-red);
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s;
-            font-family: 'Rajdhani', sans-serif;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            z-index: 2000;
         }
 
-        .btn-modal-cancel:active {
-            transform: scale(0.95);
-            background: rgba(255, 51, 102, 0.2);
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .notification.error {
+            border: 2px solid var(--warning-red);
+            color: var(--warning-red);
         }
 
         .custom-select-wrapper {
             position: relative;
-            margin-bottom: 20px;
         }
 
-        .select-trigger {
+        .custom-select {
+            position: relative;
             width: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            border: 2px solid rgba(0, 212, 255, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            font-size: 1.3rem;
-            color: var(--text-dim);
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+        }
+
+        .custom-select-trigger {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .select-trigger.selected {
-            color: white;
-            border-color: var(--accent-blue);
-        }
-
-        .select-trigger:active {
+            padding: 15px;
             background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text-dim);
         }
 
-        .select-arrow {
-            transition: transform 0.3s;
+        .custom-select-trigger.selected {
+            color: white;
         }
 
-        .custom-select.open .select-arrow {
-            transform: rotate(180deg);
-        }
-
-        .select-options {
+        .custom-options {
+            display: none;
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
             background: var(--card-bg);
-            border: 2px solid var(--accent-blue);
-            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
             margin-top: 5px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
             z-index: 100;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-height: 200px;
+            overflow-y: auto;
         }
 
-        .custom-select.open .select-options {
-            max-height: 300px;
-            overflow-y: auto;
+        .custom-select.open .custom-options {
+            display: block;
         }
 
         .custom-option {
             padding: 15px;
-            font-size: 1.2rem;
-            color: white;
             cursor: pointer;
-            transition: all 0.2s;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .custom-option:last-child {
-            border-bottom: none;
-        }
-
-        .custom-option:hover,
-        .custom-option:active {
-            background: rgba(0, 212, 255, 0.2);
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-label {
-            font-size: 1.1rem;
-            color: var(--text-dim);
-            margin-bottom: 10px;
-            display: block;
-            font-weight: 600;
-        }
-
-        .form-input {
-            width: 100%;
-            background: rgba(15, 20, 30, 1) !important;
-            border: 2px solid var(--accent-purple);
-            border-radius: 16px;
-            padding: 20px;
-            font-size: 1.8rem;
-            font-family: 'Orbitron', monospace;
-            color: #ffffff !important;
-            font-weight: 700;
             transition: all 0.3s;
-            text-align: center;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-            -webkit-text-fill-color: #ffffff !important;
+            color: white;
         }
 
-        .form-input:focus {
-            outline: none;
-            border-color: var(--neon-green) !important;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
-            background: rgba(10, 15, 25, 1) !important;
-            color: var(--neon-green) !important;
-            text-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
-            -webkit-text-fill-color: var(--neon-green) !important;
-        }
-
-        .form-input::placeholder {
-            color: rgba(255, 255, 255, 0.4) !important;
-            text-shadow: none;
-            -webkit-text-fill-color: rgba(255, 255, 255, 0.4) !important;
-        }
-
-        input[type="number"].form-input {
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
-        }
-
-        input[type="number"].form-input:focus {
-            color: var(--neon-green) !important;
-            -webkit-text-fill-color: var(--neon-green) !important;
+        .custom-option:hover {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent-blue);
         }
 
         .form-textarea {
             width: 100%;
-            background: rgba(20, 25, 40, 0.95);
-            border: 2px solid var(--accent-purple);
-            border-radius: 16px;
-            padding: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
             font-size: 1.1rem;
             font-family: 'Rajdhani', sans-serif;
-            color: #ffffff;
-            font-weight: 600;
             resize: vertical;
-            min-height: 80px;
-            transition: all 0.3s;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--neon-green);
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
-            background: rgba(15, 20, 35, 1);
-            color: var(--neon-green);
-            text-shadow: 0 0 12px rgba(0, 255, 136, 0.5);
-        }
-
-        .form-textarea::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-            text-shadow: none;
+            min-height: 100px;
         }
 
         .btn-save {
-            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
-            border: none;
-            border-radius: 16px;
-            padding: 18px;
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: white;
-            cursor: pointer;
             width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--accent-purple), #9a3ad9);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 5px 20px rgba(184, 79, 255, 0.4);
-            font-family: 'Rajdhani', sans-serif;
         }
 
-        .btn-save:active:not(:disabled) {
+        .btn-save:active {
             transform: scale(0.95);
         }
 
-        .btn-save:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .notification {
-            position: fixed;
-            bottom: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--card-bg);
-            border: 2px solid var(--accent-blue);
-            border-radius: 16px;
-            padding: 18px 30px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            z-index: 2000;
-            transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            max-width: 90%;
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
-        .notification.show {
-            bottom: 30px;
-        }
-
-        .notification.success {
-            border-color: var(--neon-green);
-            color: var(--neon-green);
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
-        }
-
-        .notification.error {
-            border-color: var(--warning-red);
-            color: var(--warning-red);
-            box-shadow: 0 0 30px rgba(255, 51, 102, 0.4);
+        .pulse {
+            animation: pulse 0.6s ease-in-out;
         }
 
         .confetti {
             position: fixed;
             width: 10px;
             height: 10px;
-            background: var(--neon-green);
-            top: -10px;
             border-radius: 50%;
-            animation: confettiFall 3s ease-out forwards;
+            top: -10px;
+            animation: fall 3s linear;
             z-index: 9999;
         }
 
-        @keyframes confettiFall {
+        @keyframes fall {
             to {
-                top: 100vh;
-                transform: translateX(calc(var(--x) * 100px)) rotate(720deg);
+                transform: translateY(100vh) translateX(calc(var(--x) * 100px)) rotate(720deg);
                 opacity: 0;
-            }
-        }
-
-        .footer {
-            text-align: center;
-            padding: 30px 20px;
-            margin-top: 50px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        @media (max-width: 480px) {
-            .display-amount {
-                font-size: 2.5rem;
             }
         }
     </style>
@@ -818,6 +864,11 @@
                     <span class="btn-icon">📊</span>
                     REGISTRAR GASTO
                 </button>
+
+                <button class="btn-main historial" onclick="showHistorialScreen()">
+                    <span class="btn-icon">📈</span>
+                    VER HISTORIAL
+                </button>
             </div>
 
             <div class="footer">
@@ -838,7 +889,41 @@
             </div>
         </div>
 
-        <!-- NUEVA VENTA -->
+        <!-- HISTORIAL SCREEN -->
+        <div id="historial-screen" class="screen">
+            <div class="top-bar">
+                <button class="btn-back" onclick="showMenuScreen()">← Menú</button>
+                <h2 style="color: var(--accent-blue); font-size: 1.5rem;">📈 Historial</h2>
+                <div style="width: 80px;"></div>
+            </div>
+
+            <div class="balance-card">
+                <div class="balance-label">Balance Total</div>
+                <div class="balance-amount positive" id="balanceTotal">$ 0.00</div>
+                <div class="balance-details">
+                    <div class="balance-item">
+                        <div class="balance-item-label">Ingresos</div>
+                        <div class="balance-item-value" style="color: var(--neon-green);" id="totalIngresos">$ 0</div>
+                    </div>
+                    <div class="balance-item">
+                        <div class="balance-item-label">Gastos</div>
+                        <div class="balance-item-value" style="color: var(--warning-red);" id="totalGastos">$ 0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="semana" onclick="cambiarFiltro('semana')">Semana</button>
+                <button class="filter-tab" data-filter="mes" onclick="cambiarFiltro('mes')">Mes</button>
+                <button class="filter-tab" data-filter="año" onclick="cambiarFiltro('año')">Año</button>
+            </div>
+
+            <div id="transactionsContainer">
+                <div class="loading">Cargando transacciones...</div>
+            </div>
+        </div>
+
+        <!-- NUEVA VENTA (misma pantalla que antes) -->
         <div id="ventas-screen" class="screen">
             <div class="top-bar">
                 <button class="btn-back" onclick="cancelarVenta()">← Volver</button>
@@ -866,8 +951,7 @@
                         type="text" 
                         id="descripcionInput" 
                         class="input-field" 
-                        placeholder="Ej: Coca Cola 2L"
-                        style="font-size: 1.1rem; background: rgba(0, 0, 0, 0.6) !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">
+                        placeholder="Ej: Coca Cola 2L">
                 </div>
                 <button class="btn-add" onclick="agregarItem()">➕ Agregar Item</button>
             </div>
@@ -890,7 +974,7 @@
             </div>
         </div>
 
-        <!-- NUEVO GASTO -->
+        <!-- NUEVO GASTO (misma pantalla que antes) -->
         <div id="gastos-screen" class="screen">
             <div class="top-bar">
                 <button class="btn-back" onclick="showMenuScreen()">← Menú</button>
@@ -979,17 +1063,46 @@
         </div>
     </div>
 
+    <!-- MODAL EDITAR TRANSACCIÓN -->
+    <div id="modalEdit" class="modal-edit">
+        <div class="modal-edit-content">
+            <div class="modal-edit-title">Editar Transacción</div>
+            
+            <div class="form-group">
+                <label class="form-label">Nuevo Monto:</label>
+                <input type="number" class="form-input" id="editMonto" step="0.01" min="0">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descripción:</label>
+                <input type="text" class="form-input" id="editDescripcion">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-modal btn-modal-cancel" onclick="cerrarModalEdit()">Cancelar</button>
+                <button class="btn-modal btn-modal-save" onclick="guardarEdicion()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="notification" class="notification"></div>
 
     <script>
+        // 🔧 WEBHOOKS - URLS ACTUALIZADAS
         const WEBHOOKS = {
-            CONSULTA: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/obtener-comerciante',
-            GUARDAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/guardar-transaccion'
+            CONSULTA: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/comerciante',
+            GUARDAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/pos-guardar-venta',
+            HISTORIAL: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/historial',
+            EDITAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion',
+            ELIMINAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion'
         };
 
-        let comercianteData = { id: '', nombre: '' };
+        let comercianteData = { id: '', nombre: '', uuid: '' };
         let ventaActual = { items: [], total: 0 };
         let contadorProductos = 1;
+        let transaccionesData = [];
+        let filtroActual = 'semana';
+        let transaccionEditando = null;
 
         window.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
@@ -1005,18 +1118,34 @@
 
         async function cargarComercianteData(id) {
             try {
+                console.log('🔍 Cargando comerciante:', id);
+                console.log('🔗 URL:', `${WEBHOOKS.CONSULTA}?id=${id}`);
+                
                 const response = await fetch(`${WEBHOOKS.CONSULTA}?id=${id}`);
+                console.log('📡 Response status:', response.status);
+                
                 const data = await response.json();
+                console.log('📦 Data recibida:', data);
+                
+                // Verificar si hay error en la respuesta
+                if (data.error) {
+                    console.error('❌ Error en respuesta:', data.message);
+                    mostrarNotificacion(`❌ ${data.message}`, 'error');
+                    return;
+                }
                 
                 comercianteData = {
                     id: id,
-                    nombre: data.Nombre_Local || data.nombre || 'Comerciante'
+                    nombre: data.nombre || data.Nombre_Local || 'Comerciante',
+                    uuid: data.uuid || data.id || '' // UUID de Supabase
                 };
+                
+                console.log('✅ Comerciante cargado:', comercianteData);
 
                 document.getElementById('userName').textContent = comercianteData.nombre;
                 document.getElementById('userId').textContent = comercianteData.id;
             } catch (error) {
-                console.error('Error:', error);
+                console.error('💥 Error completo:', error);
                 mostrarNotificacion('❌ Error al cargar datos', 'error');
             }
         }
@@ -1024,8 +1153,14 @@
         function showMenuScreen() { hideAllScreens(); document.getElementById('menu-screen').classList.add('active'); }
         function showVentasScreen() { hideAllScreens(); document.getElementById('ventas-screen').classList.add('active'); document.getElementById('montoInput').focus(); }
         function showGastosScreen() { hideAllScreens(); document.getElementById('gastos-screen').classList.add('active'); document.getElementById('montoGasto').focus(); }
+        async function showHistorialScreen() { 
+            hideAllScreens(); 
+            document.getElementById('historial-screen').classList.add('active'); 
+            await cargarHistorial();
+        }
         function hideAllScreens() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); }
 
+        // FUNCIONES DE VENTAS (sin cambios)
         function agregarItem() {
             const inputMonto = document.getElementById('montoInput');
             const inputDesc = document.getElementById('descripcionInput');
@@ -1089,7 +1224,6 @@
         }
         function cerrarModalCobro() { document.getElementById('modalCobro').classList.remove('active'); }
 
-        // VERSIÓN SIMPLE - SIN OPTIMISTIC UI - SIN DUPLICADOS
         async function procesarCobro(metodoPago) {
             cerrarModalCobro();
             const btn = document.getElementById('btnCobrar');
@@ -1178,6 +1312,190 @@
             }
         }
 
+        // 📈 FUNCIONES DE HISTORIAL
+        async function cargarHistorial() {
+            const container = document.getElementById('transactionsContainer');
+            container.innerHTML = '<div class="loading">Cargando transacciones...</div>';
+
+            try {
+                const { fechaDesde, fechaHasta } = obtenerRangoFechas(filtroActual);
+                
+                const response = await fetch(`${WEBHOOKS.HISTORIAL}?comercio_id=${comercianteData.id}&fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`);
+                const data = await response.json();
+
+                transaccionesData = data.transacciones || [];
+                
+                // Actualizar balance
+                const resumen = data.resumen || { total_ingresos: 0, total_gastos: 0, balance: 0 };
+                document.getElementById('totalIngresos').textContent = `$ ${resumen.total_ingresos.toFixed(2)}`;
+                document.getElementById('totalGastos').textContent = `$ ${resumen.total_gastos.toFixed(2)}`;
+                
+                const balanceEl = document.getElementById('balanceTotal');
+                balanceEl.textContent = `$ ${resumen.balance.toFixed(2)}`;
+                balanceEl.className = `balance-amount ${resumen.balance >= 0 ? 'positive' : 'negative'}`;
+
+                // Mostrar transacciones
+                mostrarTransacciones();
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <div>Error al cargar historial</div>
+                    </div>
+                `;
+            }
+        }
+
+        function obtenerRangoFechas(filtro) {
+            const ahora = new Date();
+            let fechaDesde;
+
+            if (filtro === 'semana') {
+                fechaDesde = new Date(ahora);
+                fechaDesde.setDate(ahora.getDate() - 7);
+            } else if (filtro === 'mes') {
+                fechaDesde = new Date(ahora);
+                fechaDesde.setMonth(ahora.getMonth() - 1);
+            } else { // año
+                fechaDesde = new Date(ahora);
+                fechaDesde.setFullYear(ahora.getFullYear() - 1);
+            }
+
+            return {
+                fechaDesde: fechaDesde.toISOString().split('T')[0],
+                fechaHasta: ahora.toISOString().split('T')[0]
+            };
+        }
+
+        function cambiarFiltro(filtro) {
+            filtroActual = filtro;
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.filter === filtro);
+            });
+            cargarHistorial();
+        }
+
+        function mostrarTransacciones() {
+            const container = document.getElementById('transactionsContainer');
+            
+            if (transaccionesData.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div>No hay transacciones en este período</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="transactions-list">
+                    ${transaccionesData.map(t => `
+                        <div class="transaction-item ${t.tipo.toLowerCase()}">
+                            <div class="transaction-info">
+                                <div class="transaction-desc">${t.descripcion || 'Sin descripción'}</div>
+                                <div class="transaction-meta">
+                                    ${formatearFecha(t.fecha_hora)} • ${t.metodo_pago || t.categoria_gasto || ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <div class="transaction-amount ${t.tipo.toLowerCase()}">
+                                    ${t.tipo === 'INGRESO' ? '+' : '-'} $ ${t.monto.toFixed(2)}
+                                </div>
+                                <div class="transaction-actions">
+                                    <button class="btn-edit" onclick="editarTransaccion('${t.id}')">✏️</button>
+                                    <button class="btn-delete" onclick="eliminarTransaccion('${t.id}')">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function formatearFecha(fechaISO) {
+            const fecha = new Date(fechaISO);
+            return fecha.toLocaleDateString('es-AR', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function editarTransaccion(id) {
+            const transaccion = transaccionesData.find(t => t.id === id);
+            if (!transaccion) return;
+
+            transaccionEditando = transaccion;
+            document.getElementById('editMonto').value = transaccion.monto;
+            document.getElementById('editDescripcion').value = transaccion.descripcion || '';
+            document.getElementById('modalEdit').classList.add('active');
+        }
+
+        function cerrarModalEdit() {
+            document.getElementById('modalEdit').classList.remove('active');
+            transaccionEditando = null;
+        }
+
+        async function guardarEdicion() {
+            if (!transaccionEditando) return;
+
+            const nuevoMonto = parseFloat(document.getElementById('editMonto').value);
+            const nuevaDescripcion = document.getElementById('editDescripcion').value;
+
+            if (!nuevoMonto || nuevoMonto <= 0) {
+                mostrarNotificacion('⚠️ Ingresa un monto válido', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(WEBHOOKS.EDITAR, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transaccion_id: transaccionEditando.id,
+                        nuevo_monto: nuevoMonto,
+                        nueva_descripcion: nuevaDescripcion
+                    })
+                });
+
+                if (response.ok) {
+                    mostrarNotificacion('✅ Transacción actualizada', 'success');
+                    cerrarModalEdit();
+                    await cargarHistorial(); // Recargar lista
+                } else {
+                    mostrarNotificacion('❌ Error al actualizar', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarNotificacion('❌ Error de conexión', 'error');
+            }
+        }
+
+        async function eliminarTransaccion(id) {
+            if (!confirm('¿Eliminar esta transacción? Esta acción no se puede deshacer.')) return;
+
+            try {
+                const response = await fetch(`${WEBHOOKS.ELIMINAR}?id=${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    mostrarNotificacion('✅ Transacción eliminada', 'success');
+                    await cargarHistorial(); // Recargar lista
+                } else {
+                    mostrarNotificacion('❌ Error al eliminar', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarNotificacion('❌ Error de conexión', 'error');
+            }
+        }
+
+        // CUSTOM SELECT
         document.getElementById('selectTrigger').addEventListener('click', () => {
             document.getElementById('customSelect').classList.toggle('open');
         });
