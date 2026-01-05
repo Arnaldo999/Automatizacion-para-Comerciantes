@@ -1093,8 +1093,8 @@
             CONSULTA: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/comerciante',
             GUARDAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/pos-guardar-venta',
             HISTORIAL: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/historial',
-            EDITAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion',
-            ELIMINAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion'
+            EDITAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion-actualizar',
+            ELIMINAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion-eliminar'
         };
 
         let comercianteData = { id: '', nombre: '', uuid: '' };
