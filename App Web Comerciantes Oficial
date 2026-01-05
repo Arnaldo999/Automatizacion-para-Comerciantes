@@ -1224,94 +1224,113 @@
         }
         function cerrarModalCobro() { document.getElementById('modalCobro').classList.remove('active'); }
 
-        async function procesarCobro(metodoPago) {
-            cerrarModalCobro();
-            const btn = document.getElementById('btnCobrar');
-            btn.disabled = true;
+       async function procesarCobro(metodoPago) {
+    cerrarModalCobro();
+    const btn = document.getElementById('btnCobrar');
+    btn.disabled = true;
 
-            const payload = {
-                id_comerciante: comercianteData.id,
-                tipo: 'INGRESO',
-                monto: ventaActual.total,
-                metodo: metodoPago,
-                descripcion: ventaActual.items.map((item, i) => `${i+1}. ${item.descripcion}: $${item.monto.toFixed(2)}`).join(', '),
-                fecha_hora: new Date().toISOString()
-            };
+    // ✅ Construir fecha/hora local manualmente
+    const ahora = new Date();
+    const year = ahora.getFullYear();
+    const month = String(ahora.getMonth() + 1).padStart(2, '0');
+    const day = String(ahora.getDate()).padStart(2, '0');
+    const hours = String(ahora.getHours()).padStart(2, '0');
+    const minutes = String(ahora.getMinutes()).padStart(2, '0');
+    const seconds = String(ahora.getSeconds()).padStart(2, '0');
+    const fechaHoraLocal = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 
-            try {
-                const response = await fetch(WEBHOOKS.GUARDAR, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+    const payload = {
+        id_comerciante: comercianteData.id,
+        tipo: 'INGRESO',
+        monto: ventaActual.total,
+        metodo: metodoPago,
+        descripcion: ventaActual.items.map((item, i) => `${i+1}. ${item.descripcion}: $${item.monto.toFixed(2)}`).join(', '),
+        fecha_hora: fechaHoraLocal
+    };
 
-                if (response.ok) {
-                    crearConfetti();
-                    mostrarNotificacion(`✅ Venta guardada (${metodoPago})`, 'success');
-                    ventaActual = { items: [], total: 0 };
-                    limpiarVentaTemporal();
-                    actualizarDisplayTotal();
-                    actualizarListaItems();
-                    setTimeout(showMenuScreen, 1500);
-                } else {
-                    mostrarNotificacion('❌ Error al guardar', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarNotificacion('❌ Error de conexión', 'error');
-            } finally {
-                btn.disabled = false;
-            }
+    try {
+        const response = await fetch(WEBHOOKS.GUARDAR, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            crearConfetti();
+            mostrarNotificacion(`✅ Venta guardada (${metodoPago})`, 'success');
+            ventaActual = { items: [], total: 0 };
+            limpiarVentaTemporal();
+            actualizarDisplayTotal();
+            actualizarListaItems();
+            setTimeout(showMenuScreen, 1500);
+        } else {
+            mostrarNotificacion('❌ Error al guardar', 'error');
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+        btn.disabled = false;
+    }
+}
 
-        async function guardarGasto() {
-            const monto = parseFloat(document.getElementById('montoGasto').value);
-            const cat = document.getElementById('categoriaGasto').value;
-            const desc = document.getElementById('descripcionGasto').value;
+async function guardarGasto() {
+    const monto = parseFloat(document.getElementById('montoGasto').value);
+    const cat = document.getElementById('categoriaGasto').value;
+    const desc = document.getElementById('descripcionGasto').value;
 
-            if (!monto || !cat) { 
-                mostrarNotificacion('⚠️ Completa los campos', 'error'); 
-                return; 
-            }
+    if (!monto || !cat) { 
+        mostrarNotificacion('⚠️ Completa los campos', 'error'); 
+        return; 
+    }
 
-            const btn = document.getElementById('btnGuardarGasto');
-            btn.disabled = true;
+    const btn = document.getElementById('btnGuardarGasto');
+    btn.disabled = true;
 
-            const payload = {
-                id_comerciante: comercianteData.id,
-                tipo: 'GASTO',
-                monto: monto,
-                categoria: cat,
-                descripcion: desc || `Gasto: ${cat}`,
-                fecha_hora: new Date().toISOString()
-            };
+    // ✅ Construir fecha/hora local manualmente
+    const ahora = new Date();
+    const year = ahora.getFullYear();
+    const month = String(ahora.getMonth() + 1).padStart(2, '0');
+    const day = String(ahora.getDate()).padStart(2, '0');
+    const hours = String(ahora.getHours()).padStart(2, '0');
+    const minutes = String(ahora.getMinutes()).padStart(2, '0');
+    const seconds = String(ahora.getSeconds()).padStart(2, '0');
+    const fechaHoraLocal = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 
-            try {
-                const response = await fetch(WEBHOOKS.GUARDAR, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+    const payload = {
+        id_comerciante: comercianteData.id,
+        tipo: 'GASTO',
+        monto: monto,
+        categoria: cat,
+        descripcion: desc || `Gasto: ${cat}`,
+        fecha_hora: fechaHoraLocal
+    };
 
-                if (response.ok) {
-                    mostrarNotificacion('✅ Gasto guardado', 'success');
-                    document.getElementById('montoGasto').value = '';
-                    document.getElementById('descripcionGasto').value = '';
-                    document.getElementById('selectedText').textContent = 'Selecciona una categoría';
-                    document.getElementById('categoriaGasto').value = '';
-                    document.getElementById('selectTrigger').classList.remove('selected');
-                    setTimeout(showMenuScreen, 1500);
-                } else {
-                    mostrarNotificacion('❌ Error al guardar', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarNotificacion('❌ Error de conexión', 'error');
-            } finally {
-                btn.disabled = false;
-            }
+    try {
+        const response = await fetch(WEBHOOKS.GUARDAR, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            mostrarNotificacion('✅ Gasto guardado', 'success');
+            document.getElementById('montoGasto').value = '';
+            document.getElementById('descripcionGasto').value = '';
+            document.getElementById('selectedText').textContent = 'Selecciona una categoría';
+            document.getElementById('categoriaGasto').value = '';
+            document.getElementById('selectTrigger').classList.remove('selected');
+            setTimeout(showMenuScreen, 1500);
+        } else {
+            mostrarNotificacion('❌ Error al guardar', 'error');
         }
-
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion('❌ Error de conexión', 'error');
+    } finally {
+        btn.disabled = false;
+    }
+}
         // 📈 FUNCIONES DE HISTORIAL
         async function cargarHistorial() {
             const container = document.getElementById('transactionsContainer');
@@ -1476,24 +1495,24 @@
         }
 
         async function eliminarTransaccion(id) {
-            if (!confirm('¿Eliminar esta transacción? Esta acción no se puede deshacer.')) return;
-
-            try {
-                const response = await fetch(`${WEBHOOKS.ELIMINAR}?id=${id}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    mostrarNotificacion('✅ Transacción eliminada', 'success');
-                    await cargarHistorial(); // Recargar lista
-                } else {
-                    mostrarNotificacion('❌ Error al eliminar', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarNotificacion('❌ Error de conexión', 'error');
-            }
+    if (!confirm('📊 Reporte Automatización 360\n\n¿Eliminar esta transacción?\nEsta acción no se puede deshacer.')) return;
+    
+    try {
+        const response = await fetch(`${WEBHOOKS.ELIMINAR}?id=${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            mostrarNotificacion('✅ Transacción eliminada', 'success');
+            await cargarHistorial(); // Recargar lista
+        } else {
+            mostrarNotificacion('❌ Error al eliminar', 'error');
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion('❌ Error de conexión', 'error');
+    }
+}
 
         // CUSTOM SELECT
         document.getElementById('selectTrigger').addEventListener('click', () => {
