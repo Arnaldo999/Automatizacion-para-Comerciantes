@@ -845,7 +845,8 @@
         <!-- MENÚ PRINCIPAL -->
         <div id="menu-screen" class="screen active">
             <div class="header">
-                <h1 style="text-align: center; font-size: 2.5rem; font-weight: 700; color: var(--neon-green); text-shadow: 0 0 20px rgba(0, 255, 136, 0.5); margin: 0 0 20px 0; letter-spacing: 2px;">
+                <div style="font-weight: 700; font-size: 0.95rem; color: var(--neon-green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); margin-bottom: 2px;">Reporte Automatizado 360</div>
+                <h1 style="text-align: center; font-size: 2rem; font-weight: 700; color: var(--neon-green); text-shadow: 0 0 20px rgba(0, 255, 136, 0.5); margin: 0 0 20px 0; letter-spacing: 2px;">
                     💼 GESTIÓN COMERCIAL
                 </h1>
                 <div class="user-info">
@@ -871,22 +872,47 @@
                 </button>
             </div>
 
-            <div class="footer">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; padding: 15px 10px; flex-wrap: wrap;">
-                    <img src="https://arnaldoayalaestratega.com/wp-content/uploads/2025/10/cropped-LOGO-OSCURO.jpeg" 
-                         alt="Logo Arnaldo Ayala" 
-                         style="height: 60px; width: auto; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);"
-                         onerror="this.style.display='none'">
-                    <div style="text-align: center; line-height: 1.6;">
-                        <div style="font-weight: 700; font-size: 1.2rem; color: var(--neon-green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); margin-bottom: 4px;">Arnaldo Ayala</div>
-                        <div style="font-size: 0.95rem; color: var(--text-dim); margin-bottom: 6px;">Estratega en IA y Marketing</div>
-                        <a href="https://wa.me/5493765384843" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--neon-green); text-decoration: none; padding: 6px 12px; border: 1px solid var(--neon-green); border-radius: 8px; transition: all 0.3s; background: rgba(0, 255, 136, 0.1);">
-                            <span style="font-size: 1.2rem;">📱</span>
-                            <span>WhatsApp: +54 3765 384843</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
+            <div class="footer" style="background: rgba(0, 20, 40, 0.95); padding: 12px; border-radius: 12px; border: 1px solid var(--neon-green); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); margin-top: 20px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="https://arnaldoayalaestratega.com/wp-content/uploads/2025/10/cropped-LOGO-OSCURO.jpeg" 
+             alt="Logo Arnaldo Ayala" 
+             style="height: 45px; width: 45px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4); object-fit: cover; flex-shrink: 0;"
+             onerror="this.style.display='none'">
+        <div style="flex: 1; line-height: 1.4;">
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--neon-green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); margin-bottom: 2px;">Arnaldo Ayala</div>
+            <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 4px;">Estratega en IA y Marketing</div>
+            <a href="https://wa.me/5493765384843" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--neon-green); text-decoration: none; padding: 4px 8px; border: 1px solid var(--neon-green); border-radius: 6px; transition: all 0.3s; background: rgba(0, 255, 136, 0.1);">
+                <span style="font-size: 0.9rem;">📱</span>
+                <span>+54 3765 384843</span>
+            </a>
+            <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 4px;">arnaldoayalaestratega.com</div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Fixed solo en pantallas grandes (PC) */
+@media (min-width: 768px) {
+    .footer {
+        position: fixed !important;
+        bottom: 20px !important;
+        right: 20px !important;
+        z-index: 1000 !important;
+        max-width: 280px !important;
+        margin-top: 0 !important;
+    }
+}
+
+/* En móvil se mantiene normal (al final) */
+@media (max-width: 767px) {
+    .footer {
+        position: relative !important;
+        width: calc(100% - 20px) !important;
+        max-width: 100% !important;
+        margin: 20px 10px !important;
+    }
+}
+</style>
         </div>
 
         <!-- HISTORIAL SCREEN -->
@@ -1434,15 +1460,19 @@ async function guardarGasto() {
         }
 
         function formatearFecha(fechaISO) {
-            const fecha = new Date(fechaISO);
-            return fecha.toLocaleDateString('es-AR', { 
-                day: '2-digit', 
-                month: '2-digit', 
-                year: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
+    // Si la fecha viene como null o undefined, retornar vacío
+    if (!fechaISO) return '';
+    
+    // Extraer la parte de fecha y hora, ignorando el timezone
+    const partes = fechaISO.split('T');
+    if (partes.length < 2) return fechaISO; // Si no tiene formato esperado
+    
+    const [fechaParte, horaParte] = partes;
+    const [año, mes, dia] = fechaParte.split('-');
+    const [hora, minuto] = horaParte.split(':');
+    
+    return `${dia}/${mes}/${año.slice(-2)} ${hora}:${minuto}`;
+}
 
         function editarTransaccion(id) {
             const transaccion = transaccionesData.find(t => t.id === id);
