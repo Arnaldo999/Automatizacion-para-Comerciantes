@@ -1498,13 +1498,15 @@ async function guardarGasto() {
     if (!confirm('📊 Reporte Automatización 360\n\n¿Eliminar esta transacción?\nEsta acción no se puede deshacer.')) return;
     
     try {
-        const response = await fetch(`${WEBHOOKS.ELIMINAR}?id=${id}`, {
-            method: 'DELETE'
+        const response = await fetch(WEBHOOKS.ELIMINAR, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
         });
         
         if (response.ok) {
             mostrarNotificacion('✅ Transacción eliminada', 'success');
-            await cargarHistorial(); // Recargar lista
+            await cargarHistorial();
         } else {
             mostrarNotificacion('❌ Error al eliminar', 'error');
         }
