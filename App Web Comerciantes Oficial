@@ -1460,39 +1460,39 @@ async function guardarGasto() {
         }
 
         async function guardarEdicion() {
-            if (!transaccionEditando) return;
+    if (!transaccionEditando) return;
 
-            const nuevoMonto = parseFloat(document.getElementById('editMonto').value);
-            const nuevaDescripcion = document.getElementById('editDescripcion').value;
+    const nuevoMonto = parseFloat(document.getElementById('editMonto').value);
+    const nuevaDescripcion = document.getElementById('editDescripcion').value;
 
-            if (!nuevoMonto || nuevoMonto <= 0) {
-                mostrarNotificacion('⚠️ Ingresa un monto válido', 'error');
-                return;
-            }
+    if (!nuevoMonto || nuevoMonto <= 0) {
+        mostrarNotificacion('⚠️ Ingresa un monto válido', 'error');
+        return;
+    }
 
-            try {
-                const response = await fetch(WEBHOOKS.EDITAR, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        transaccion_id: transaccionEditando.id,
-                        nuevo_monto: nuevoMonto,
-                        nueva_descripcion: nuevaDescripcion
-                    })
-                });
+    try {
+        const response = await fetch(WEBHOOKS.EDITAR, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: transaccionEditando.id,  // ✅ CAMBIO 1: de transaccion_id a id
+                monto: nuevoMonto,  // ✅ CAMBIO 2: de nuevo_monto a monto
+                descripcion: nuevaDescripcion  // ✅ CAMBIO 3: de nueva_descripcion a descripcion
+            })
+        });
 
-                if (response.ok) {
-                    mostrarNotificacion('✅ Transacción actualizada', 'success');
-                    cerrarModalEdit();
-                    await cargarHistorial(); // Recargar lista
-                } else {
-                    mostrarNotificacion('❌ Error al actualizar', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarNotificacion('❌ Error de conexión', 'error');
-            }
+        if (response.ok) {
+            mostrarNotificacion('✅ Transacción actualizada', 'success');
+            cerrarModalEdit();
+            await cargarHistorial(); // Recargar lista
+        } else {
+            mostrarNotificacion('❌ Error al actualizar', 'error');
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion('❌ Error de conexión', 'error');
+    }
+}
 
         async function eliminarTransaccion(id) {
     if (!confirm('📊 Reporte Automatización 360\n\n¿Eliminar esta transacción?\nEsta acción no se puede deshacer.')) return;
