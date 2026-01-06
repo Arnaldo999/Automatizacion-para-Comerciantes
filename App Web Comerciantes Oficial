@@ -487,6 +487,7 @@
 
         .input-group {
             margin-bottom: 20px;
+            position: relative;
         }
 
         .input-label {
@@ -507,6 +508,30 @@
             font-size: 1.2rem;
             font-family: 'Rajdhani', sans-serif;
             font-weight: 600;
+        }
+
+        /* Botón flotante móvil */
+        .btn-check-mobile {
+            display: none;
+            position: absolute;
+            right: 8px;
+            top: 38px;
+            background: var(--neon-green);
+            border: none;
+            color: var(--dark-bg);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.5);
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        .btn-check-mobile:active {
+            transform: scale(0.9);
         }
 
         .btn-add {
@@ -838,6 +863,28 @@
                 opacity: 0;
             }
         }
+
+        /* Fixed solo en pantallas grandes (PC) */
+        @media (min-width: 768px) {
+            .footer {
+                position: fixed !important;
+                bottom: 20px !important;
+                right: 20px !important;
+                z-index: 1000 !important;
+                max-width: 280px !important;
+                margin-top: 0 !important;
+            }
+        }
+
+        /* En móvil se mantiene normal (al final) */
+        @media (max-width: 767px) {
+            .footer {
+                position: relative !important;
+                width: calc(100% - 20px) !important;
+                max-width: 100% !important;
+                margin: 20px 10px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -873,46 +920,21 @@
             </div>
 
             <div class="footer" style="background: rgba(0, 20, 40, 0.95); padding: 12px; border-radius: 12px; border: 1px solid var(--neon-green); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); margin-top: 20px;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <img src="https://arnaldoayalaestratega.com/wp-content/uploads/2025/10/cropped-LOGO-OSCURO.jpeg" 
-             alt="Logo Arnaldo Ayala" 
-             style="height: 45px; width: 45px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4); object-fit: cover; flex-shrink: 0;"
-             onerror="this.style.display='none'">
-        <div style="flex: 1; line-height: 1.4;">
-            <div style="font-weight: 700; font-size: 0.95rem; color: var(--neon-green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); margin-bottom: 2px;">Arnaldo Ayala</div>
-            <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 4px;">Estratega en IA y Marketing</div>
-            <a href="https://wa.me/5493765384843" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--neon-green); text-decoration: none; padding: 4px 8px; border: 1px solid var(--neon-green); border-radius: 6px; transition: all 0.3s; background: rgba(0, 255, 136, 0.1);">
-                <span style="font-size: 0.9rem;">📱</span>
-                <span>+54 3765 384843</span>
-            </a>
-            <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 4px;">arnaldoayalaestratega.com</div>
-        </div>
-    </div>
-</div>
-
-<style>
-/* Fixed solo en pantallas grandes (PC) */
-@media (min-width: 768px) {
-    .footer {
-        position: fixed !important;
-        bottom: 20px !important;
-        right: 20px !important;
-        z-index: 1000 !important;
-        max-width: 280px !important;
-        margin-top: 0 !important;
-    }
-}
-
-/* En móvil se mantiene normal (al final) */
-@media (max-width: 767px) {
-    .footer {
-        position: relative !important;
-        width: calc(100% - 20px) !important;
-        max-width: 100% !important;
-        margin: 20px 10px !important;
-    }
-}
-</style>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="https://arnaldoayalaestratega.com/wp-content/uploads/2025/10/cropped-LOGO-OSCURO.jpeg" 
+                         alt="Logo Arnaldo Ayala" 
+                         style="height: 45px; width: 45px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4); object-fit: cover; flex-shrink: 0;"
+                         onerror="this.style.display='none'">
+                    <div style="flex: 1; line-height: 1.4;">
+                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--neon-green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); margin-bottom: 2px;">Arnaldo Ayala</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 4px;">Estratega en IA y Marketing</div>
+                        <a href="https://wa.me/5493765384843" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--neon-green); text-decoration: none; padding: 4px 8px; border: 1px solid var(--neon-green); border-radius: 6px; transition: all 0.3s; background: rgba(0, 255, 136, 0.1);">
+                            <span style="font-size: 0.9rem;">📱</span>
+                            <span>+54 3765 384843</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- HISTORIAL SCREEN -->
@@ -949,7 +971,7 @@
             </div>
         </div>
 
-        <!-- NUEVA VENTA (misma pantalla que antes) -->
+        <!-- NUEVA VENTA -->
         <div id="ventas-screen" class="screen">
             <div class="top-bar">
                 <button class="btn-back" onclick="cancelarVenta()">← Volver</button>
@@ -964,12 +986,13 @@
                 <div class="input-group">
                     <label class="input-label">Monto del producto</label>
                     <input 
-                        type="number" 
+                        type="text" 
+                        inputmode="decimal"
                         id="montoInput" 
                         class="input-field" 
                         placeholder="0.00"
-                        step="0.01"
-                        min="0">
+                        style="padding-right: 50px;">
+                    <button id="btnCheckMonto" class="btn-check-mobile" onclick="agregarItem()">✓</button>
                 </div>
                 <div class="input-group">
                     <label class="input-label">Descripción (opcional)</label>
@@ -1000,7 +1023,7 @@
             </div>
         </div>
 
-        <!-- NUEVO GASTO (misma pantalla que antes) -->
+        <!-- NUEVO GASTO -->
         <div id="gastos-screen" class="screen">
             <div class="top-bar">
                 <button class="btn-back" onclick="showMenuScreen()">← Menú</button>
@@ -1011,16 +1034,16 @@
                     💸 REGISTRAR GASTO
                 </h2>
 
-                <div class="form-group">
+                <div class="form-group" style="position: relative;">
                     <label class="form-label">Monto:</label>
                     <input 
-                        type="number" 
+                        type="text"
+                        inputmode="decimal"
                         class="form-input" 
                         id="montoGasto" 
                         placeholder="0.00"
-                        step="0.01"
-                        min="0"
-                    >
+                        style="padding-right: 50px;">
+                    <button id="btnCheckGasto" class="btn-check-mobile" style="top: 46px;" onclick="guardarGasto()">✓</button>
                 </div>
 
                 <div class="form-group">
@@ -1114,7 +1137,6 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // 🔧 WEBHOOKS - URLS ACTUALIZADAS
         const WEBHOOKS = {
             CONSULTA: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/comerciante',
             GUARDAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/pos-guardar-venta',
@@ -1144,18 +1166,10 @@
 
         async function cargarComercianteData(id) {
             try {
-                console.log('🔍 Cargando comerciante:', id);
-                console.log('🔗 URL:', `${WEBHOOKS.CONSULTA}?id=${id}`);
-                
                 const response = await fetch(`${WEBHOOKS.CONSULTA}?id=${id}`);
-                console.log('📡 Response status:', response.status);
-                
                 const data = await response.json();
-                console.log('📦 Data recibida:', data);
                 
-                // Verificar si hay error en la respuesta
                 if (data.error) {
-                    console.error('❌ Error en respuesta:', data.message);
                     mostrarNotificacion(`❌ ${data.message}`, 'error');
                     return;
                 }
@@ -1163,30 +1177,140 @@
                 comercianteData = {
                     id: id,
                     nombre: data.nombre || data.Nombre_Local || 'Comerciante',
-                    uuid: data.uuid || data.id || '' // UUID de Supabase
+                    uuid: data.uuid || data.id || ''
                 };
-                
-                console.log('✅ Comerciante cargado:', comercianteData);
 
                 document.getElementById('userName').textContent = comercianteData.nombre;
                 document.getElementById('userId').textContent = comercianteData.id;
             } catch (error) {
-                console.error('💥 Error completo:', error);
+                console.error('Error:', error);
                 mostrarNotificacion('❌ Error al cargar datos', 'error');
             }
         }
 
         function showMenuScreen() { hideAllScreens(); document.getElementById('menu-screen').classList.add('active'); }
-        function showVentasScreen() { hideAllScreens(); document.getElementById('ventas-screen').classList.add('active'); document.getElementById('montoInput').focus(); }
-        function showGastosScreen() { hideAllScreens(); document.getElementById('gastos-screen').classList.add('active'); document.getElementById('montoGasto').focus(); }
+        
+        function showVentasScreen() { 
+            hideAllScreens(); 
+            document.getElementById('ventas-screen').classList.add('active');
+            document.getElementById('montoInput').focus();
+        }
+        
+        function showGastosScreen() { 
+            hideAllScreens(); 
+            document.getElementById('gastos-screen').classList.add('active');
+            document.getElementById('montoGasto').focus(); 
+        }
+        
         async function showHistorialScreen() { 
             hideAllScreens(); 
             document.getElementById('historial-screen').classList.add('active'); 
             await cargarHistorial();
         }
+        
         function hideAllScreens() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); }
 
-        // FUNCIONES DE VENTAS (sin cambios)
+        // ✅ Configurar eventos Enter y botón flotante (se ejecuta una sola vez al cargar la página)
+        document.addEventListener('DOMContentLoaded', function() {
+            const montoInput = document.getElementById('montoInput');
+            const descripcionInput = document.getElementById('descripcionInput');
+            const btnCheckMonto = document.getElementById('btnCheckMonto');
+            
+            if (montoInput) {
+                // Enter en cualquier campo
+                montoInput.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        const valor = this.value.trim();
+                        if (valor && parseFloat(valor) > 0) {
+                            agregarItem();
+                        }
+                    }
+                });
+                
+                // Mostrar/ocultar botón flotante en móvil
+                montoInput.addEventListener('focus', function() {
+                    if (window.innerWidth < 768 && btnCheckMonto) {
+                        btnCheckMonto.style.display = 'block';
+                    }
+                });
+                
+                montoInput.addEventListener('blur', function() {
+                    if (btnCheckMonto) {
+                        setTimeout(() => btnCheckMonto.style.display = 'none', 200);
+                    }
+                });
+            }
+            
+            if (descripcionInput) {
+                descripcionInput.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        // Solo agregar si hay monto válido, sino solo enfocar el campo de monto
+                        if (montoInput && montoInput.value.trim() && parseFloat(montoInput.value) > 0) {
+                            agregarItem();
+                        } else {
+                            // Si no hay monto, enfocar el campo de monto sin mostrar error
+                            if (montoInput) {
+                                montoInput.focus();
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        // ✅ Configurar eventos para Gastos (se ejecuta una sola vez al cargar la página)
+        document.addEventListener('DOMContentLoaded', function() {
+            const montoGasto = document.getElementById('montoGasto');
+            const descripcionGasto = document.getElementById('descripcionGasto');
+            const btnCheckGasto = document.getElementById('btnCheckGasto');
+            
+            if (montoGasto) {
+                // Enter en monto
+                montoGasto.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        const valor = this.value.trim();
+                        if (valor && parseFloat(valor) > 0) {
+                            // Validar que haya categoría antes de guardar
+                            const categoria = document.getElementById('categoriaGasto').value;
+                            if (categoria) {
+                                guardarGasto();
+                            } else {
+                                mostrarNotificacion('⚠️ Selecciona una categoría', 'error');
+                            }
+                        }
+                    }
+                });
+                
+                // Mostrar/ocultar botón flotante en móvil
+                montoGasto.addEventListener('focus', function() {
+                    if (window.innerWidth < 768 && btnCheckGasto) {
+                        btnCheckGasto.style.display = 'block';
+                    }
+                });
+                
+                montoGasto.addEventListener('blur', function() {
+                    if (btnCheckGasto) {
+                        setTimeout(() => btnCheckGasto.style.display = 'none', 200);
+                    }
+                });
+            }
+            
+            if (descripcionGasto) {
+                descripcionGasto.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        if (montoGasto && montoGasto.value.trim() && parseFloat(montoGasto.value) > 0) {
+                            const categoria = document.getElementById('categoriaGasto').value;
+                            if (categoria) {
+                                guardarGasto();
+                            } else {
+                                mostrarNotificacion('⚠️ Selecciona una categoría', 'error');
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
         function agregarItem() {
             const inputMonto = document.getElementById('montoInput');
             const inputDesc = document.getElementById('descripcionInput');
@@ -1248,116 +1372,115 @@
             document.getElementById('modalAmount').textContent = `$ ${ventaActual.total.toFixed(2)}`;
             document.getElementById('modalCobro').classList.add('active');
         }
+        
         function cerrarModalCobro() { document.getElementById('modalCobro').classList.remove('active'); }
 
-       async function procesarCobro(metodoPago) {
-    cerrarModalCobro();
-    const btn = document.getElementById('btnCobrar');
-    btn.disabled = true;
+        async function procesarCobro(metodoPago) {
+            cerrarModalCobro();
+            const btn = document.getElementById('btnCobrar');
+            btn.disabled = true;
 
-    // ✅ Construir fecha/hora local manualmente
-    const ahora = new Date();
-    const year = ahora.getFullYear();
-    const month = String(ahora.getMonth() + 1).padStart(2, '0');
-    const day = String(ahora.getDate()).padStart(2, '0');
-    const hours = String(ahora.getHours()).padStart(2, '0');
-    const minutes = String(ahora.getMinutes()).padStart(2, '0');
-    const seconds = String(ahora.getSeconds()).padStart(2, '0');
-    const fechaHoraLocal = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+            const ahora = new Date();
+            const year = ahora.getFullYear();
+            const month = String(ahora.getMonth() + 1).padStart(2, '0');
+            const day = String(ahora.getDate()).padStart(2, '0');
+            const hours = String(ahora.getHours()).padStart(2, '0');
+            const minutes = String(ahora.getMinutes()).padStart(2, '0');
+            const seconds = String(ahora.getSeconds()).padStart(2, '0');
+            const fechaHoraLocal = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 
-    const payload = {
-        id_comerciante: comercianteData.id,
-        tipo: 'INGRESO',
-        monto: ventaActual.total,
-        metodo: metodoPago,
-        descripcion: ventaActual.items.map((item, i) => `${i+1}. ${item.descripcion}: $${item.monto.toFixed(2)}`).join(', '),
-        fecha_hora: fechaHoraLocal
-    };
+            const payload = {
+                id_comerciante: comercianteData.id,
+                tipo: 'INGRESO',
+                monto: ventaActual.total,
+                metodo: metodoPago,
+                descripcion: ventaActual.items.map((item, i) => `${i+1}. ${item.descripcion}: $${item.monto.toFixed(2)}`).join(', '),
+                fecha_hora: fechaHoraLocal
+            };
 
-    try {
-        const response = await fetch(WEBHOOKS.GUARDAR, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+            try {
+                const response = await fetch(WEBHOOKS.GUARDAR, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-        if (response.ok) {
-            crearConfetti();
-            mostrarNotificacion(`✅ Venta guardada (${metodoPago})`, 'success');
-            ventaActual = { items: [], total: 0 };
-            limpiarVentaTemporal();
-            actualizarDisplayTotal();
-            actualizarListaItems();
-            setTimeout(showMenuScreen, 1500);
-        } else {
-            mostrarNotificacion('❌ Error al guardar', 'error');
+                if (response.ok) {
+                    crearConfetti();
+                    mostrarNotificacion(`✅ Venta guardada (${metodoPago})`, 'success');
+                    ventaActual = { items: [], total: 0 };
+                    limpiarVentaTemporal();
+                    actualizarDisplayTotal();
+                    actualizarListaItems();
+                    setTimeout(showMenuScreen, 1500);
+                } else {
+                    mostrarNotificacion('❌ Error al guardar', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarNotificacion('❌ Error de conexión', 'error');
+            } finally {
+                btn.disabled = false;
+            }
         }
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarNotificacion('❌ Error de conexión', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-}
 
-async function guardarGasto() {
-    const monto = parseFloat(document.getElementById('montoGasto').value);
-    const cat = document.getElementById('categoriaGasto').value;
-    const desc = document.getElementById('descripcionGasto').value;
+        async function guardarGasto() {
+            const monto = parseFloat(document.getElementById('montoGasto').value);
+            const cat = document.getElementById('categoriaGasto').value;
+            const desc = document.getElementById('descripcionGasto').value;
 
-    if (!monto || !cat) { 
-        mostrarNotificacion('⚠️ Completa los campos', 'error'); 
-        return; 
-    }
+            if (!monto || !cat) { 
+                mostrarNotificacion('⚠️ Completa los campos', 'error'); 
+                return; 
+            }
 
-    const btn = document.getElementById('btnGuardarGasto');
-    btn.disabled = true;
+            const btn = document.getElementById('btnGuardarGasto');
+            btn.disabled = true;
 
-    // ✅ Construir fecha/hora local manualmente
-    const ahora = new Date();
-    const year = ahora.getFullYear();
-    const month = String(ahora.getMonth() + 1).padStart(2, '0');
-    const day = String(ahora.getDate()).padStart(2, '0');
-    const hours = String(ahora.getHours()).padStart(2, '0');
-    const minutes = String(ahora.getMinutes()).padStart(2, '0');
-    const seconds = String(ahora.getSeconds()).padStart(2, '0');
-    const fechaHoraLocal = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+            const ahora = new Date();
+            const year = ahora.getFullYear();
+            const month = String(ahora.getMonth() + 1).padStart(2, '0');
+            const day = String(ahora.getDate()).padStart(2, '0');
+            const hours = String(ahora.getHours()).padStart(2, '0');
+            const minutes = String(ahora.getMinutes()).padStart(2, '0');
+            const seconds = String(ahora.getSeconds()).padStart(2, '0');
+            const fechaHoraLocal = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 
-    const payload = {
-        id_comerciante: comercianteData.id,
-        tipo: 'GASTO',
-        monto: monto,
-        categoria: cat,
-        descripcion: desc || `Gasto: ${cat}`,
-        fecha_hora: fechaHoraLocal
-    };
+            const payload = {
+                id_comerciante: comercianteData.id,
+                tipo: 'GASTO',
+                monto: monto,
+                categoria: cat,
+                descripcion: desc || `Gasto: ${cat}`,
+                fecha_hora: fechaHoraLocal
+            };
 
-    try {
-        const response = await fetch(WEBHOOKS.GUARDAR, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+            try {
+                const response = await fetch(WEBHOOKS.GUARDAR, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-        if (response.ok) {
-            mostrarNotificacion('✅ Gasto guardado', 'success');
-            document.getElementById('montoGasto').value = '';
-            document.getElementById('descripcionGasto').value = '';
-            document.getElementById('selectedText').textContent = 'Selecciona una categoría';
-            document.getElementById('categoriaGasto').value = '';
-            document.getElementById('selectTrigger').classList.remove('selected');
-            setTimeout(showMenuScreen, 1500);
-        } else {
-            mostrarNotificacion('❌ Error al guardar', 'error');
+                if (response.ok) {
+                    mostrarNotificacion('✅ Gasto guardado', 'success');
+                    document.getElementById('montoGasto').value = '';
+                    document.getElementById('descripcionGasto').value = '';
+                    document.getElementById('selectedText').textContent = 'Selecciona una categoría';
+                    document.getElementById('categoriaGasto').value = '';
+                    document.getElementById('selectTrigger').classList.remove('selected');
+                    setTimeout(showMenuScreen, 1500);
+                } else {
+                    mostrarNotificacion('❌ Error al guardar', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarNotificacion('❌ Error de conexión', 'error');
+            } finally {
+                btn.disabled = false;
+            }
         }
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarNotificacion('❌ Error de conexión', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-}
-        // 📈 FUNCIONES DE HISTORIAL
+
         async function cargarHistorial() {
             const container = document.getElementById('transactionsContainer');
             container.innerHTML = '<div class="loading">Cargando transacciones...</div>';
@@ -1370,7 +1493,6 @@ async function guardarGasto() {
 
                 transaccionesData = data.transacciones || [];
                 
-                // Actualizar balance
                 const resumen = data.resumen || { total_ingresos: 0, total_gastos: 0, balance: 0 };
                 document.getElementById('totalIngresos').textContent = `$ ${resumen.total_ingresos.toFixed(2)}`;
                 document.getElementById('totalGastos').textContent = `$ ${resumen.total_gastos.toFixed(2)}`;
@@ -1379,7 +1501,6 @@ async function guardarGasto() {
                 balanceEl.textContent = `$ ${resumen.balance.toFixed(2)}`;
                 balanceEl.className = `balance-amount ${resumen.balance >= 0 ? 'positive' : 'negative'}`;
 
-                // Mostrar transacciones
                 mostrarTransacciones();
             } catch (error) {
                 console.error('Error:', error);
@@ -1402,7 +1523,7 @@ async function guardarGasto() {
             } else if (filtro === 'mes') {
                 fechaDesde = new Date(ahora);
                 fechaDesde.setMonth(ahora.getMonth() - 1);
-            } else { // año
+            } else {
                 fechaDesde = new Date(ahora);
                 fechaDesde.setFullYear(ahora.getFullYear() - 1);
             }
@@ -1460,19 +1581,17 @@ async function guardarGasto() {
         }
 
         function formatearFecha(fechaISO) {
-    // Si la fecha viene como null o undefined, retornar vacío
-    if (!fechaISO) return '';
-    
-    // Extraer la parte de fecha y hora, ignorando el timezone
-    const partes = fechaISO.split('T');
-    if (partes.length < 2) return fechaISO; // Si no tiene formato esperado
-    
-    const [fechaParte, horaParte] = partes;
-    const [año, mes, dia] = fechaParte.split('-');
-    const [hora, minuto] = horaParte.split(':');
-    
-    return `${dia}/${mes}/${año.slice(-2)} ${hora}:${minuto}`;
-}
+            if (!fechaISO) return '';
+            
+            const partes = fechaISO.split('T');
+            if (partes.length < 2) return fechaISO;
+            
+            const [fechaParte, horaParte] = partes;
+            const [año, mes, dia] = fechaParte.split('-');
+            const [hora, minuto] = horaParte.split(':');
+            
+            return `${dia}/${mes}/${año.slice(-2)} ${hora}:${minuto}`;
+        }
 
         function editarTransaccion(id) {
             const transaccion = transaccionesData.find(t => t.id === id);
@@ -1490,63 +1609,62 @@ async function guardarGasto() {
         }
 
         async function guardarEdicion() {
-    if (!transaccionEditando) return;
+            if (!transaccionEditando) return;
 
-    const nuevoMonto = parseFloat(document.getElementById('editMonto').value);
-    const nuevaDescripcion = document.getElementById('editDescripcion').value;
+            const nuevoMonto = parseFloat(document.getElementById('editMonto').value);
+            const nuevaDescripcion = document.getElementById('editDescripcion').value;
 
-    if (!nuevoMonto || nuevoMonto <= 0) {
-        mostrarNotificacion('⚠️ Ingresa un monto válido', 'error');
-        return;
-    }
+            if (!nuevoMonto || nuevoMonto <= 0) {
+                mostrarNotificacion('⚠️ Ingresa un monto válido', 'error');
+                return;
+            }
 
-    try {
-        const response = await fetch(WEBHOOKS.EDITAR, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: transaccionEditando.id,  // ✅ CAMBIO 1: de transaccion_id a id
-                monto: nuevoMonto,  // ✅ CAMBIO 2: de nuevo_monto a monto
-                descripcion: nuevaDescripcion  // ✅ CAMBIO 3: de nueva_descripcion a descripcion
-            })
-        });
+            try {
+                const response = await fetch(WEBHOOKS.EDITAR, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: transaccionEditando.id,
+                        monto: nuevoMonto,
+                        descripcion: nuevaDescripcion
+                    })
+                });
 
-        if (response.ok) {
-            mostrarNotificacion('✅ Transacción actualizada', 'success');
-            cerrarModalEdit();
-            await cargarHistorial(); // Recargar lista
-        } else {
-            mostrarNotificacion('❌ Error al actualizar', 'error');
+                if (response.ok) {
+                    mostrarNotificacion('✅ Transacción actualizada', 'success');
+                    cerrarModalEdit();
+                    await cargarHistorial();
+                } else {
+                    mostrarNotificacion('❌ Error al actualizar', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarNotificacion('❌ Error de conexión', 'error');
+            }
         }
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarNotificacion('❌ Error de conexión', 'error');
-    }
-}
 
         async function eliminarTransaccion(id) {
-    if (!confirm('📊 Reporte Automatización 360\n\n¿Eliminar esta transacción?\nEsta acción no se puede deshacer.')) return;
-    
-    try {
-        const response = await fetch(WEBHOOKS.ELIMINAR, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id })
-        });
-        
-        if (response.ok) {
-            mostrarNotificacion('✅ Transacción eliminada', 'success');
-            await cargarHistorial();
-        } else {
-            mostrarNotificacion('❌ Error al eliminar', 'error');
+            if (!confirm('📊 Reporte Automatización 360\n\n¿Eliminar esta transacción?\nEsta acción no se puede deshacer.')) return;
+            
+            try {
+                const response = await fetch(WEBHOOKS.ELIMINAR, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+                
+                if (response.ok) {
+                    mostrarNotificacion('✅ Transacción eliminada', 'success');
+                    await cargarHistorial();
+                } else {
+                    mostrarNotificacion('❌ Error al eliminar', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarNotificacion('❌ Error de conexión', 'error');
+            }
         }
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarNotificacion('❌ Error de conexión', 'error');
-    }
-}
 
-        // CUSTOM SELECT
         document.getElementById('selectTrigger').addEventListener('click', () => {
             document.getElementById('customSelect').classList.toggle('open');
         });
