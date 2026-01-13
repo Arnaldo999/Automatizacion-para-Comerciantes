@@ -483,21 +483,23 @@
                             <i class="fa-solid fa-list-check"></i> Historial
                         </h2>
                     </div>
+                    <!-- Botón para abrir modal de reporte -->
                     <button onclick="abrirModalReporte()"
                         class="w-full md:w-auto bg-secondary/20 hover:bg-secondary text-secondary hover:text-dark px-4 py-3 md:py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-2 text-xs">
                         <i class="fa-solid fa-file-export"></i> SOLICITAR REPORTE
                     </button>
                 </div>
 
-                <!-- Balance Cards -->
+                <!-- Balance Cards (Visual Summary) -->
+                <!-- ✅ Estas tarjetas mostrarán los totales correspondientes al filtro activo (Hoy, Semana, Mes, Año) -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div
                         class="col-span-1 md:col-span-3 bg-gradient-to-r from-gray-800 to-gray-900 border border-secondary/30 rounded-2xl p-6 text-center">
-                        <div class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">Balance Neto</div>
+                        <div class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">Balance Neto (Ganancia)</div>
                         <div id="balanceTotal" class="text-4xl md:text-5xl font-mono font-bold text-white">$ 0.00</div>
                     </div>
                     <div class="bg-card/50 border border-primary/20 rounded-xl p-4 text-center">
-                        <div class="text-xs text-gray-400 uppercase">Ingresos</div>
+                        <div class="text-xs text-gray-400 uppercase">Ingresos (Ventas)</div>
                         <div id="totalIngresos" class="text-2xl font-bold text-primary">$ 0.00</div>
                     </div>
                     <div class="bg-card/50 border border-warning/20 rounded-xl p-4 text-center">
@@ -816,28 +818,28 @@
                     <i class="fa-solid fa-file-invoice text-3xl text-secondary"></i>
                 </div>
                 <h3 class="text-xl font-bold text-white">Solicitar Reporte</h3>
-                <p class="text-sm text-gray-400">Selecciona el periodo del reporte que deseas recibir.</p>
+                <p class="text-sm text-gray-400">Selecciona el periodo del reporte que deseas recibir por Correo.</p>
             </div>
             <div class="grid grid-cols-1 gap-3 mb-6">
                 <button onclick="enviarSolicitudReporte('hoy')"
-                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4">
+                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Reporte de Hoy</span>
-                    <i class="fa-solid fa-chevron-right text-xs opacity-30"></i>
+                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
                 <button onclick="enviarSolicitudReporte('semana')"
-                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4">
+                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Esta Semana</span>
-                    <i class="fa-solid fa-chevron-right text-xs opacity-30"></i>
+                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
                 <button onclick="enviarSolicitudReporte('mes')"
-                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4">
+                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Este Mes</span>
-                    <i class="fa-solid fa-chevron-right text-xs opacity-30"></i>
+                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
                 <button onclick="enviarSolicitudReporte('anio')"
-                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4">
+                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Este Año</span>
-                    <i class="fa-solid fa-chevron-right text-xs opacity-30"></i>
+                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
             </div>
             <button onclick="cerrarModalReporte()"
@@ -858,14 +860,16 @@
         const WEBHOOKS = {
             CONSULTA: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/comerciante',
             GUARDAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/pos-guardar-venta',
-            GUARDAR_BATCH: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/guardar-local',  // ✅ Para sincronización
+            GUARDAR_BATCH: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/guardar-local',  
             HISTORIAL: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/historial',
             EDITAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion-actualizar',
             ELIMINAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion-eliminar',
             INVENTARIO: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/inventario',
             CONSULTA_INVENTARIO: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/consulta-inventario',
             INVENTARIO_ACTUALIZAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/inventario-actualizar',
-            INVENTARIO_ELIMINAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/inventario-eliminar'
+            INVENTARIO_ELIMINAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/inventario-eliminar',
+            // ✅ AGREGADO WEBHOOK DE REPORTE POR EMAIL
+            REPORTE_EMAIL: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/generar-reporte' 
         };
 
         let comercianteData = { id: '', nombre: '' };
@@ -881,8 +885,8 @@
         // ✅ Sistema de Queue Offline
         const STORAGE_KEYS = {
             QUEUE_PENDIENTES: 'transacciones_pendientes',
-            INVENTARIO_CACHE: 'inventario_cache',  // ✅ Nuevo: caché de inventario
-            LAST_INVENTARIO_SYNC: 'last_inventario_sync'  // ✅ Timestamp de última sincronización
+            INVENTARIO_CACHE: 'inventario_cache',  
+            LAST_INVENTARIO_SYNC: 'last_inventario_sync'  
         };
 
         function guardarEnQueue(transaccion) {
@@ -1857,8 +1861,13 @@
             container.innerHTML = '<div class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i><p>Cargando datos...</p></div>';
 
             try {
+                // ✅ SE CORRIGIÓ LA LÓGICA DE FECHAS EN 'obtenerRangoFechas' (Ver abajo)
                 const { fechaDesde, fechaHasta } = obtenerRangoFechas(filtroActual);
+                
+                // Le pasamos las fechas exactas al Webhook
                 const url = `${WEBHOOKS.HISTORIAL}?comercio_id=${comercianteData.id}&fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`;
+                console.log('📅 Solicitando historial:', fechaDesde, 'a', fechaHasta);
+                
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -1883,24 +1892,41 @@
             cargarHistorial();
         }
 
+        // ✅ LÓGICA DE FECHAS CORREGIDA SEGÚN TU PEDIDO EXACTO
         function obtenerRangoFechas(filtro) {
             const ahora = new Date();
             let fechaDesde = new Date();
+            // Aseguramos que siempre empiece a las 00:00:00
+            fechaDesde.setHours(0, 0, 0, 0);
 
-            if (filtro === 'hoy' || filtro === 'dia') {
-                fechaDesde.setHours(0, 0, 0, 0);
+            if (filtro === 'hoy') {
+                // No hacemos nada, ya está en hoy 00:00
             } else if (filtro === 'semana') {
-                fechaDesde.setDate(ahora.getDate() - 7);
+                // ✅ SEMANA: Empezar desde el Domingo (0)
+                const day = ahora.getDay(); // 0 es Domingo
+                fechaDesde.setDate(ahora.getDate() - day);
             } else if (filtro === 'mes') {
+                // ✅ MES: Día 1 del mes actual
                 fechaDesde.setDate(1);
-                fechaDesde.setHours(0, 0, 0, 0);
-            } else if (filtro === 'año' || filtro === 'este_año') {
+            } else if (filtro === 'año') {
+                // ✅ AÑO: 1 de Enero
                 fechaDesde.setMonth(0, 1);
-                fechaDesde.setHours(0, 0, 0, 0);
             }
 
-            const format = (d) => d.toISOString().split('T')[0];
-            return { fechaDesde: format(fechaDesde), fechaHasta: format(ahora) };
+            // Formato YYYY-MM-DD para Supabase/N8N
+            const format = (d) => {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+            
+            // Para 'hasta', usamos el momento actual (o fin del día si quisieras)
+            // Usamos ahora tal cual para capturar hasta el último segundo
+            return { 
+                fechaDesde: format(fechaDesde), 
+                fechaHasta: format(ahora) 
+            };
         }
 
         function safeDate(dateStr) {
@@ -1919,9 +1945,21 @@
                 if (t.tipo === 'GASTO') gastos += parseFloat(t.monto);
             });
 
+            // ✅ RESUMEN EN PANTALLA ACTUALIZADO (HOY/SEMANA/MES)
             document.getElementById('totalIngresos').textContent = `$ ${ingresos.toFixed(2)}`;
             document.getElementById('totalGastos').textContent = `$ ${gastos.toFixed(2)}`;
-            document.getElementById('balanceTotal').textContent = `$ ${(ingresos - gastos).toFixed(2)}`;
+            const balance = ingresos - gastos;
+            const balanceEl = document.getElementById('balanceTotal');
+            balanceEl.textContent = `$ ${balance.toFixed(2)}`;
+            
+            // Color dinámico para el balance
+            if(balance >= 0) {
+                balanceEl.classList.remove('text-red-500');
+                balanceEl.classList.add('text-white');
+            } else {
+                balanceEl.classList.add('text-red-500');
+                balanceEl.classList.remove('text-white');
+            }
 
             if (datos.length === 0) {
                 container.innerHTML = '<p class="text-center text-gray-500 py-8">No hay movimientos en este periodo</p>';
@@ -2131,11 +2169,44 @@
             document.getElementById('modalSolicitarReporte').classList.remove('flex');
         }
 
+        // ✅ LÓGICA ACTIVADA: ENVIAR REPORTE
         async function enviarSolicitudReporte(periodo) {
             cerrarModalReporte();
-            mostrarNotificacion(`📧 Solicitud de reporte (${periodo}) enviada`, 'success');
-            // Aquí se podría disparar un webhook de N8N que genere el PDF y lo envíe por email/whatsapp
+
+            if (!isOnline) {
+                mostrarNotificacion('❌ Necesitas internet para solicitar reportes', 'error');
+                return;
+            }
+
+            mostrarNotificacion(`📧 Solicitando reporte (${periodo})...`, 'warning');
             console.log(`Solicitando reporte para periodo: ${periodo}`);
+
+            try {
+                // Obtenemos fechas exactas para el reporte
+                const { fechaDesde, fechaHasta } = obtenerRangoFechas(periodo);
+
+                const response = await fetch(WEBHOOKS.REPORTE_EMAIL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_comerciante: comercianteData.id,
+                        periodo: periodo, // "hoy", "semana", "mes"
+                        fecha_desde: fechaDesde,
+                        fecha_hasta: fechaHasta,
+                        email_destinacion: "arnaldoayalaestratega@gmail.com" // (Opcional, si n8n lo requiere)
+                    })
+                });
+
+                if(response.ok) {
+                    mostrarNotificacion(`✅ Reporte enviado a tu correo`, 'success');
+                } else {
+                    throw new Error('Error al generar reporte');
+                }
+
+            } catch (e) {
+                console.error(e);
+                mostrarNotificacion('❌ Error al solicitar reporte', 'error');
+            }
         }
 
         async function eliminarProducto(id, codigo) {
