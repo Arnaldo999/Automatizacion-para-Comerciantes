@@ -201,6 +201,11 @@
                     <i class="fa-solid fa-boxes-stacked text-lg w-6 text-center text-gold"></i>
                     <span>Inventario</span>
                 </button>
+                <button onclick="showConfigScreen()"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors text-left text-gray-300 hover:text-white">
+                    <i class="fa-solid fa-gear text-lg w-6 text-center text-accent"></i>
+                    <span>Configuración</span>
+                </button>
             </nav>
         </div>
 
@@ -236,12 +241,33 @@
         <div class="flex-1 overflow-y-auto p-4 md:p-8 relative pb-28 md:pb-8">
 
             <!-- MENU SCREEN -->
-            <div id="menu-screen" class="screen active max-w-4xl mx-auto">
-                <div class="text-center mb-8 md:mb-12">
+            <!-- ✅ PERFIL DE USUARIO MOVIDO FUERA DEL CONTENEDOR LIMITADO -->
+            <!-- Lo ponemos fixed o absolute relativo al main para que se pegue a la derecha real -->
+            <div id="perfil-btn-container"
+                class="absolute top-4 right-4 z-50 md:right-8 transition-opacity duration-300">
+                <button onclick="abrirPerfil()" class="group flex items-center gap-3 focus:outline-none">
+                    <div class="text-right hidden sm:block">
+                        <p id="miniPerfilNombre" class="text-xs font-bold text-white leading-tight">Cargando...</p>
+                        <p class="text-[10px] text-primary">Ver Perfil</p>
+                    </div>
+                    <div
+                        class="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-primary to-secondary cursor-pointer shadow-lg shadow-primary/20 hover:scale-105 transition-transform duration-300">
+                        <div class="w-full h-full rounded-full bg-gray-900 border-2 border-gray-900 overflow-hidden">
+                            <img id="profileImageBtn" src="https://ui-avatars.com/api/?name=User&background=random"
+                                alt="Perfil" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <div id="menu-screen" class="screen active max-w-4xl mx-auto relative">
+
+                <div class="text-center mb-8 md:mb-12 pt-8 md:pt-0">
                     <h1 class="text-3xl md:text-5xl font-bold text-white mb-2 tracking-tight">
                         Gestión <span class="text-primary">Comercial</span>
                     </h1>
                     <p class="text-gray-400">Selecciona una operación para comenzar</p>
+
                 </div>
 
                 <div class="hidden">
@@ -307,7 +333,8 @@
                             <i class="fa-solid fa-cart-shopping"></i> Nueva Venta
                         </h2>
                         <!-- ✅ Nuevo Botón Refrescar Inventario en Ventas -->
-                        <button onclick="cargarInventario(true)" class="text-gray-400 hover:text-white transition-colors" title="Actualizar Inventario">
+                        <button onclick="cargarInventario(true)"
+                            class="text-gray-400 hover:text-white transition-colors" title="Actualizar Inventario">
                             <i class="fa-solid fa-sync"></i>
                         </button>
                     </div>
@@ -319,52 +346,73 @@
                     <div class="flex-1 space-y-6">
                         <!-- Input Section (Larger Search) -->
                         <div class="glass-panel rounded-2xl p-6">
-                            
+
                             <!-- ✅ SECCIÓN DE BÚSQUEDA Y ESCANEO EN VENTAS -->
                             <div class="mb-4">
                                 <div class="flex gap-2">
                                     <div class="relative flex-1">
-                                        <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                        <i
+                                            class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                                         <!-- onkeydown detecta Enter (USB scanner o teclado) para agregar rápido -->
-                                        <input type="text" id="descripcionInput" 
-                                            oninput="buscarProductos(this.value)"
+                                        <input type="text" id="descripcionInput" oninput="buscarProductos(this.value)"
                                             onkeydown="if(event.key === 'Enter'){ handleVentasEnter(this.value); }"
                                             class="w-full bg-dark/50 border border-gray-600 rounded-2xl pl-12 pr-12 py-4 text-white text-lg focus:outline-none focus:border-primary transition-all"
                                             placeholder="Buscar producto o Escanear...">
-                                        
+
                                         <button id="btnClearSearch" onclick="limpiarBuscador()"
                                             class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white hidden">
                                             <i class="fa-solid fa-times text-xl"></i>
                                         </button>
                                     </div>
                                     <!-- Botón Escáner Ventas -->
-                                    <button type="button" onclick="toggleScanner('ventas')" class="bg-gray-700 hover:bg-gray-600 text-white px-5 rounded-2xl transition-colors flex items-center justify-center border border-gray-600">
+                                    <button type="button" onclick="toggleScanner('ventas')"
+                                        class="bg-gray-700 hover:bg-gray-600 text-white px-5 rounded-2xl transition-colors flex items-center justify-center border border-gray-600">
                                         <i class="fa-solid fa-barcode text-2xl"></i>
                                     </button>
                                 </div>
-                                
+
                                 <!-- Contenedor de la cámara Ventas -->
-                                <div id="reader-ventas" class="hidden w-full rounded-xl overflow-hidden border-2 border-primary mt-2"></div>
-                                
+                                <div id="reader-ventas"
+                                    class="hidden w-full rounded-xl overflow-hidden border-2 border-primary mt-2"></div>
+
                                 <!-- Resultados de búsqueda -->
                                 <div id="productosResultados"
                                     class="hidden z-30 w-full mt-2 bg-gray-800 border border-gray-600 rounded-xl shadow-2xl max-h-80 overflow-y-auto">
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                            <!-- Campos de Cantidad y Precio -->
+                            <div class="grid grid-cols-2 gap-4 items-end">
                                 <div>
-                                    <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Monto
+                                    <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Cantidad</label>
+                                    <input type="number" inputmode="numeric" id="cantidadInput" value="1" min="1"
+                                        oninput="actualizarTotalItem()"
+                                        class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white text-xl font-bold focus:outline-none focus:border-secondary"
+                                        placeholder="1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Precio Unitario
                                         ($)</label>
                                     <input type="text" inputmode="decimal" id="montoInput"
+                                        oninput="actualizarTotalItem()"
                                         class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white text-xl font-bold focus:outline-none focus:border-primary"
                                         placeholder="0.00">
                                 </div>
-                                <button onclick="agregarItem()"
-                                    class="h-[52px] bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-all">
-                                    <i class="fa-solid fa-plus"></i> Agregar Item
-                                </button>
                             </div>
+
+                            <!-- Total del Item Calculado -->
+                            <div class="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/30">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-300 font-bold">Total Item:</span>
+                                    <span id="totalItemDisplay" class="text-2xl font-mono font-bold text-primary">$
+                                        0.00</span>
+                                </div>
+                            </div>
+
+                            <button onclick="agregarItem()"
+                                class="h-[52px] bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg">
+                                <i class="fa-solid fa-plus"></i> Agregar Item
+                            </button>
                         </div>
                     </div>
 
@@ -495,7 +543,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div
                         class="col-span-1 md:col-span-3 bg-gradient-to-r from-gray-800 to-gray-900 border border-secondary/30 rounded-2xl p-6 text-center">
-                        <div class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">Balance Neto (Ganancia)</div>
+                        <div class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">Balance Neto
+                            (Ganancia)</div>
                         <div id="balanceTotal" class="text-4xl md:text-5xl font-mono font-bold text-white">$ 0.00</div>
                     </div>
                     <div class="bg-card/50 border border-primary/20 rounded-xl p-4 text-center">
@@ -512,13 +561,13 @@
                 <div
                     class="flex justify-center p-1 bg-gray-800 rounded-lg mb-6 max-w-lg mx-auto overflow-x-auto scrollbar-none">
                     <button
-                        class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium active bg-gray-700 text-white whitespace-nowrap"
+                        class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium text-gray-400 whitespace-nowrap"
                         data-filter="hoy" onclick="cambiarFiltro('hoy')">Hoy</button>
                     <button
                         class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium text-gray-400 whitespace-nowrap"
                         data-filter="semana" onclick="cambiarFiltro('semana')">Esta Semana</button>
                     <button
-                        class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium text-gray-400 whitespace-nowrap"
+                        class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium active bg-gray-700 text-white whitespace-nowrap"
                         data-filter="mes" onclick="cambiarFiltro('mes')">Este Mes</button>
                     <button
                         class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium text-gray-400 whitespace-nowrap"
@@ -550,27 +599,30 @@
                 <!-- FORMULARIO CREAR PRODUCTO NUEVO -->
                 <div class="glass-panel rounded-2xl p-6 mb-6">
                     <h3 class="text-gold font-bold mb-4 uppercase text-xs">Nuevo Producto</h3>
-                    
+
                     <!-- Sección Escáner (Nuevo) -->
                     <div class="mb-5 space-y-2">
                         <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Código de Barras</label>
                         <div class="flex gap-2">
                             <!-- MODIFICADO: Agregamos onkeydown para capturar el Enter del escáner USB instantáneamente -->
-                            <input type="text" id="invCodigo" 
-                                onkeydown="if(event.key === 'Enter') { event.preventDefault(); verificarExistencia(this.value); }" 
-                                class="flex-1 bg-dark/50 border border-gray-600 rounded-xl px-4 py-3 text-white focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all" 
+                            <input type="text" id="invCodigo"
+                                onkeydown="if(event.key === 'Enter') { event.preventDefault(); verificarExistencia(this.value); }"
+                                class="flex-1 bg-dark/50 border border-gray-600 rounded-xl px-4 py-3 text-white focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all"
                                 placeholder="Escanea o escribe el código y presiona Enter...">
-                            <button type="button" onclick="toggleScanner('inv')" class="bg-gray-700 hover:bg-gray-600 text-white px-4 rounded-xl transition-colors flex items-center justify-center">
+                            <button type="button" onclick="toggleScanner('inv')"
+                                class="bg-gray-700 hover:bg-gray-600 text-white px-4 rounded-xl transition-colors flex items-center justify-center">
                                 <i class="fa-solid fa-barcode text-xl"></i>
                             </button>
                         </div>
                         <!-- Contenedor de la cámara -->
-                        <div id="reader-inv" class="hidden w-full rounded-xl overflow-hidden border-2 border-gold mt-2"></div>
+                        <div id="reader-inv" class="hidden w-full rounded-xl overflow-hidden border-2 border-gold mt-2">
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Nombre del Producto</label>
+                            <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Nombre del
+                                Producto</label>
                             <input type="text" id="invNombre"
                                 class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold">
                         </div>
@@ -586,17 +638,20 @@
                         <div>
                             <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Costo ($)</label>
                             <input type="number" id="invCosto" step="0.01" oninput="calcularPrecio('inv')"
-                                class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold" placeholder="0.00">
+                                class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold"
+                                placeholder="0.00">
                         </div>
                         <div>
                             <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Ganancia %</label>
                             <input type="number" id="invGanancia" step="0.01" oninput="calcularPrecio('inv')"
-                                class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold" placeholder="30">
+                                class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold"
+                                placeholder="30">
                         </div>
                         <div>
                             <label class="block text-xs text-gold mb-2 font-bold uppercase">Precio Final</label>
-                            <input type="number" id="invPrecio" step="0.01" 
-                                class="w-full bg-gold/10 border border-gold rounded-lg px-4 py-3 text-white font-bold focus:outline-none" placeholder="0.00">
+                            <input type="number" id="invPrecio" step="0.01"
+                                class="w-full bg-gold/10 border border-gold rounded-lg px-4 py-3 text-white font-bold focus:outline-none"
+                                placeholder="0.00">
                         </div>
                         <div>
                             <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Stock</label>
@@ -622,7 +677,8 @@
                     <div class="md:overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <!-- ✅ CAMBIO 1: AGREGADA COLUMNA COSTO -->
-                            <thead class="bg-dark/50 text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-700">
+                            <thead
+                                class="bg-dark/50 text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-700">
                                 <tr>
                                     <th class="px-4 py-3 font-bold">Producto</th>
                                     <th class="px-4 py-3 font-bold">Categoría</th>
@@ -641,6 +697,91 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONFIGURACIÓN SCREEN -->
+            <div id="config-screen" class="screen max-w-2xl mx-auto">
+                <div class="flex items-center justify-between mb-8">
+                    <button onclick="showMenuScreen()"
+                        class="md:hidden flex items-center text-gray-400 hover:text-white">
+                        <i class="fa-solid fa-arrow-left mr-2"></i> Menú
+                    </button>
+                    <h2 class="text-2xl font-bold text-accent flex items-center gap-2">
+                        <i class="fa-solid fa-gear"></i> Configuración
+                    </h2>
+                    <div></div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-6 space-y-6">
+                    <!-- Cerrar Sesión -->
+                    <div class="border-b border-gray-700 pb-6">
+                        <h3 class="text-gold font-bold mb-4 uppercase text-sm">Sesión</h3>
+                        <button onclick="cerrarSesion()"
+                            class="w-full bg-red-500/10 hover:bg-red-500 border border-red-500/50 hover:border-red-500 text-red-500 hover:text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            Cerrar Sesión
+                        </button>
+                    </div>
+
+                    <!-- Tema -->
+                    <div class="border-b border-gray-700 pb-6">
+                        <h3 class="text-gold font-bold mb-4 uppercase text-sm">Apariencia</h3>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-300">Tema Oscuro</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="temaToggle" checked disabled class="sr-only peer">
+                                <div
+                                    class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
+                                </div>
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Actualmente solo disponible en tema oscuro</p>
+                    </div>
+
+                    <!-- Sonidos -->
+                    <div class="border-b border-gray-700 pb-6">
+                        <h3 class="text-gold font-bold mb-4 uppercase text-sm">Sonidos</h3>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-300">Notificaciones Sonoras</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="sonidoToggle" onchange="toggleSonido()" class="sr-only peer">
+                                <div
+                                    class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
+                                </div>
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Habilitar sonidos para notificaciones de la app</p>
+                    </div>
+
+                    <!-- Información -->
+                    <div class="border-b border-gray-700 pb-6">
+                        <h3 class="text-gold font-bold mb-4 uppercase text-sm">Información</h3>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <div class="text-gray-400">Versión</div>
+                                <div class="text-white font-bold">1.0.0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-400">Usuario</div>
+                                <div class="text-white font-bold" id="configUserId">---</div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="text-gray-400 text-sm">Última Sincronización</div>
+                            <div class="text-white font-bold" id="ultimaSync">Nunca</div>
+                        </div>
+                    </div>
+
+                    <!-- Limpiar Caché -->
+                    <div class="pt-4">
+                        <button onclick="limpiarCache()"
+                            class="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-trash"></i> Limpiar Caché Local
+                        </button>
+                        <p class="text-xs text-gray-500 mt-2 text-center">Elimina todos los datos almacenados localmente
+                        </p>
                     </div>
                 </div>
             </div>
@@ -675,6 +816,11 @@
                 class="flex flex-col items-center justify-center text-gray-400 hover:text-white">
                 <i class="fa-solid fa-boxes-stacked text-lg mb-1"></i>
                 <span class="text-[10px]">Inventario</span>
+            </button>
+            <button onclick="showConfigScreen()"
+                class="flex flex-col items-center justify-center text-gray-400 hover:text-white">
+                <i class="fa-solid fa-gear text-lg mb-1"></i>
+                <span class="text-[10px]">Config</span>
             </button>
         </div>
     </nav>
@@ -773,7 +919,7 @@
                     <input type="text" id="editInvCategoria"
                         class="w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-gold">
                 </div>
-                
+
                 <!-- ✅ CAMBIO 3: AGREGADOS INPUTS DE COSTO Y GANANCIA PARA EDITAR -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -824,26 +970,113 @@
                 <button onclick="enviarSolicitudReporte('hoy')"
                     class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Reporte de Hoy</span>
-                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
+                    <i
+                        class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
                 <button onclick="enviarSolicitudReporte('semana')"
                     class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Esta Semana</span>
-                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
+                    <i
+                        class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
                 <button onclick="enviarSolicitudReporte('mes')"
                     class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Este Mes</span>
-                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
+                    <i
+                        class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
                 <button onclick="enviarSolicitudReporte('anio')"
                     class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Este Año</span>
-                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
+                    <i
+                        class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
             </div>
             <button onclick="cerrarModalReporte()"
                 class="w-full py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold transition-all">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- ✅ MODAL PERFIL DE USUARIO (Alineado a la derecha) -->
+    <div id="modalPerfil"
+        class="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-[80] hidden flex justify-end items-start pt-[80px] pr-4 md:pr-8 animate-fade-in">
+        <div
+            class="bg-card border border-gray-700 rounded-3xl p-6 w-full max-w-sm relative overflow-hidden shadow-2xl mr-0 md:mr-0">
+            <!-- Close Button -->
+            <button onclick="cerrarPerfil()"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white z-20 bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center transition-all">
+                <i class="fa-solid fa-times"></i>
+            </button>
+
+            <!-- Header Background -->
+            <div
+                class="absolute top-0 left-0 w-full h-28 bg-gradient-to-br from-primary/30 via-secondary/20 to-dark z-0">
+            </div>
+
+            <!-- Avatar & Upload -->
+            <div class="relative z-10 flex flex-col items-center mt-6 mb-6">
+                <div class="relative group cursor-pointer" onclick="document.getElementById('fileInputPerfil').click()">
+                    <div
+                        class="w-28 h-28 rounded-full border-4 border-card bg-gray-800 overflow-hidden shadow-2xl relative">
+                        <img id="profileImageModal" src="https://ui-avatars.com/api/?name=User&background=random"
+                            class="w-full h-full object-cover">
+                        <!-- Overlay de carga -->
+                        <div
+                            class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                            <i class="fa-solid fa-camera text-white text-2xl drop-shadow-lg"></i>
+                        </div>
+                    </div>
+                    <!-- Badge de edición -->
+                    <div
+                        class="absolute bottom-1 right-1 bg-primary text-white w-8 h-8 rounded-full border-4 border-card flex items-center justify-center text-xs shadow-lg">
+                        <i class="fa-solid fa-pen"></i>
+                    </div>
+                    <!-- Hidden Input -->
+                    <input type="file" id="fileInputPerfil" accept="image/*" class="hidden"
+                        onchange="actualizarFotoPerfil(this)">
+                </div>
+
+                <h3 id="perfilNombre" class="text-2xl font-bold text-white mt-4 text-center">Cargando...</h3>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <p id="perfilId"
+                        class="text-xs text-green-400 font-mono bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
+                        ID: ---</p>
+                </div>
+            </div>
+
+            <!-- Personal Data -->
+            <div class="space-y-3 mb-8 z-10 relative bg-dark/30 rounded-2xl p-4 border border-gray-700/50">
+                <div class="flex items-center gap-3 pb-3 border-b border-gray-700/50 last:border-0 last:pb-0">
+                    <div class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-400">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Comercio</p>
+                        <p id="perfilComercio" class="text-sm font-medium text-white">---</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 pt-2">
+                    <div class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-400">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Miembro desde</p>
+                        <p class="text-sm font-medium text-white">Enero 2026</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logout Button (Bottom) -->
+            <button onclick="cerrarSesion()"
+                class="w-full bg-gradient-to-r from-red-500/10 to-red-900/10 hover:from-red-500 hover:to-red-600 text-red-500 hover:text-white border border-red-500/20 hover:border-transparent font-bold py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 group">
+                <div
+                    class="w-8 h-8 rounded-full bg-red-500/20 group-hover:bg-white/20 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-power-off"></i>
+                </div>
+                <span>CERRAR SESIÓN</span>
+            </button>
+            <p class="text-[10px] text-center text-gray-600 mt-4">Versión 1.0.0 • POS Antigravity</p>
         </div>
     </div>
 
@@ -858,25 +1091,25 @@
 
     <script>
         const WEBHOOKS = {
-            CONSULTA: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/comerciante',
-            GUARDAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/pos-guardar-venta',
-            GUARDAR_BATCH: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/guardar-local',  
-            HISTORIAL: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/historial',
-            EDITAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion-actualizar',
-            ELIMINAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion-eliminar',
-            INVENTARIO: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/inventario',
-            CONSULTA_INVENTARIO: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/consulta-inventario',
-            INVENTARIO_ACTUALIZAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/inventario-actualizar',
-            INVENTARIO_ELIMINAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/inventario-eliminar',
+            CONSULTA: 'https://n8n.arnaldoayalaestratega.com/webhook/comerciante',
+            GUARDAR: 'https://n8n.arnaldoayalaestratega.com/webhook/pos-guardar-venta',
+            GUARDAR_BATCH: 'https://n8n.arnaldoayalaestratega.com/webhook/guardar-local',
+            HISTORIAL: 'https://n8n.arnaldoayalaestratega.com/webhook/historial',
+            EDITAR: 'https://n8n.arnaldoayalaestratega.com/webhook/transaccion-actualizar',
+            ELIMINAR: 'https://n8n.arnaldoayalaestratega.com/webhook/transaccion-eliminar',
+            INVENTARIO: 'https://n8n.arnaldoayalaestratega.com/webhook/inventario',
+            CONSULTA_INVENTARIO: 'https://n8n.arnaldoayalaestratega.com/webhook/consulta-inventario',
+            INVENTARIO_ACTUALIZAR: 'https://n8n.arnaldoayalaestratega.com/webhook/inventario-actualizar',
+            INVENTARIO_ELIMINAR: 'https://n8n.arnaldoayalaestratega.com/webhook/inventario-eliminar',
             // ✅ AGREGADO WEBHOOK DE REPORTE POR EMAIL
-            REPORTE_EMAIL: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/generar-reporte' 
+            REPORTE_EMAIL: 'https://n8n.arnaldoayalaestratega.com/webhook/generar-reporte'
         };
 
         let comercianteData = { id: '', nombre: '' };
         let ventaActual = { items: [], total: 0 };
         let contadorProductos = 1;
         let transaccionesData = [];
-        let filtroActual = 'semana';
+        let filtroActual = 'mes'; // ✅ CAMBIO A MES POR DEFECTO PARA VER DATOS SIEMPRE
         let transaccionEditando = null;
         let inventario = [];
         let isOnline = navigator.onLine;
@@ -885,8 +1118,8 @@
         // ✅ Sistema de Queue Offline
         const STORAGE_KEYS = {
             QUEUE_PENDIENTES: 'transacciones_pendientes',
-            INVENTARIO_CACHE: 'inventario_cache',  
-            LAST_INVENTARIO_SYNC: 'last_inventario_sync'  
+            INVENTARIO_CACHE: 'inventario_cache',
+            LAST_INVENTARIO_SYNC: 'last_inventario_sync'
         };
 
         function guardarEnQueue(transaccion) {
@@ -1012,9 +1245,9 @@
 
             await cargarComercianteData(id);
             cargarVentaGuardada();
-            
+
             // ✅ CARGA INICIAL ROBUSTA: PRIMERO CACHÉ, LUEGO RED
-            await cargarInventario(false); 
+            await cargarInventario(false);
 
             // ✅ Sincronizar transacciones pendientes si hay internet
             if (isOnline) {
@@ -1027,30 +1260,32 @@
         });
 
         async function cargarComercianteData(id) {
+            // ✅ FIX: Asignar ID inmediatamente para que esté disponible aunque falle la consulta del nombre
+            comercianteData.id = id;
+            updateUIFields('userId', id);
+            updateUIFields('sidebarUserId', id);
+            updateUIFields('headerUserId', id);
+
             try {
                 const response = await fetch(`${WEBHOOKS.CONSULTA}?id=${id}`);
                 const data = await response.json();
 
                 if (data.error) {
-                    mostrarNotificacion(`❌ ${data.message}`, 'error');
+                    // Si hay error, ya tenemos el ID, solo notificamos
+                    mostrarNotificacion(`⚠️ ${data.message || 'Error cargando nombre'}`, 'warning');
                     return;
                 }
 
-                comercianteData = {
-                    id: id,
-                    nombre: data.nombre || data.Nombre_Local || 'Comerciante'
-                };
+                comercianteData.nombre = data.nombre || data.Nombre_Local || 'Comerciante';
 
                 updateUIFields('userName', comercianteData.nombre);
-                updateUIFields('userId', comercianteData.id);
                 updateUIFields('sidebarUserName', comercianteData.nombre);
-                updateUIFields('sidebarUserId', comercianteData.id);
                 updateUIFields('headerUserName', comercianteData.nombre);
-                updateUIFields('headerUserId', comercianteData.id);
 
             } catch (error) {
                 console.error('Error:', error);
-                mostrarNotificacion('❌ Error al cargar datos', 'error');
+                // No bloqueamos, el ID ya está seteado
+                mostrarNotificacion('⚠️ Usando modo sin conexión (Nombre no cargado)', 'warning');
             }
         }
 
@@ -1059,23 +1294,44 @@
             if (el) el.textContent = value;
         }
 
-        function showMenuScreen() { hideAllScreens(); document.getElementById('menu-screen').classList.add('active'); }
-        async function showVentasScreen() { 
-            hideAllScreens(); 
-            document.getElementById('ventas-screen').classList.add('active'); 
-            
+        function showMenuScreen() {
+            hideAllScreens();
+            document.getElementById('menu-screen').classList.add('active');
+            // Mostrar botón perfil
+            const perfilBtn = document.getElementById('perfil-btn-container');
+            if (perfilBtn) perfilBtn.classList.remove('hidden');
+        }
+        async function showVentasScreen() {
+            hideAllScreens();
+            document.getElementById('ventas-screen').classList.add('active');
+
             // ✅ Asegurar inventario fresco si está vacío, pero sin bloquear la UI
-            if(inventario.length === 0) {
+            if (inventario.length === 0) {
                 console.log('📦 Inventario vacío al abrir ventas, intentando cargar...');
                 await cargarInventario(false); // False = intenta caché primero
             }
-            
-            document.getElementById('descripcionInput').focus(); 
-        } 
+
+            document.getElementById('descripcionInput').focus();
+        }
         function showGastosScreen() { hideAllScreens(); document.getElementById('gastos-screen').classList.add('active'); document.getElementById('montoGasto').focus(); }
         function showInventarioScreen() { hideAllScreens(); document.getElementById('inventario-screen').classList.add('active'); }
         async function showHistorialScreen() { hideAllScreens(); document.getElementById('historial-screen').classList.add('active'); await cargarHistorial(); }
-        function hideAllScreens() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); }
+        function showConfigScreen() {
+            hideAllScreens();
+            document.getElementById('config-screen').classList.add('active');
+            // Actualizar info del usuario en config
+            const configUserId = document.getElementById('configUserId');
+            if (configUserId) configUserId.textContent = comercianteData.id || '---';
+            // Cargar estado del toggle de sonido
+            const sonidoToggle = document.getElementById('sonidoToggle');
+            if (sonidoToggle) sonidoToggle.checked = localStorage.getItem('sonidosEnabled') === 'true';
+        }
+        function hideAllScreens() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            // Ocultar botón perfil en otras pantallas para limpiar UI
+            const perfilBtn = document.getElementById('perfil-btn-container');
+            if (perfilBtn) perfilBtn.classList.add('hidden');
+        }
 
         // ==========================================
         //  NUEVA LÓGICA DE ESCÁNER Y PRECIOS
@@ -1087,7 +1343,7 @@
             // 'prefix' puede ser 'inv' (crear) o 'ventas' (vender)
             const readerId = `reader-${prefix}`;
             const readerDiv = document.getElementById(readerId);
-            
+
             // Si ya está abierto, lo cerramos
             if (!readerDiv.classList.contains('hidden')) {
                 cerrarScanner(prefix);
@@ -1096,21 +1352,21 @@
 
             // Abrimos el escáner
             readerDiv.classList.remove('hidden');
-            
+
             if (!html5QrcodeScanner) {
                 html5QrcodeScanner = new Html5Qrcode(readerId);
             }
 
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            
+
             // Preferimos la cámara trasera ('environment')
             html5QrcodeScanner.start({ facingMode: "environment" }, config, (decodedText) => {
                 onScanSuccess(decodedText, prefix);
             })
-            .catch(err => {
-                console.error("Error al iniciar cámara", err);
-                alert("No se pudo iniciar la cámara. Asegúrate de dar permisos.");
-            });
+                .catch(err => {
+                    console.error("Error al iniciar cámara", err);
+                    alert("No se pudo iniciar la cámara. Asegúrate de dar permisos.");
+                });
         }
 
         // ✅ FUNCIÓN DE BÚSQUEDA ROBUSTA (Reemplazar la anterior)
@@ -1119,10 +1375,10 @@
 
             // 1. Convertimos lo escaneado a Texto Puro, Mayúsculas y sin espacios
             const codigoBuscado = String(codigoRaw).trim().toUpperCase();
-            
+
             console.log("--------------------------------");
             console.log("🔍 Escaneado:", codigoBuscado);
-            
+
             // Debug: Ver si el inventario tiene datos cargados
             if (!inventario || inventario.length === 0) {
                 console.warn("⚠️ El inventario en memoria está vacío. Revisa la carga inicial.");
@@ -1151,18 +1407,18 @@
             if (productoExistente) {
                 console.log("✅ ENCONTRADO:", productoExistente.nombre);
                 mostrarNotificacion(`📦 Encontrado: ${productoExistente.nombre}`, 'success');
-                
+
                 // Limpiamos campo y quitamos foco para evitar doble lectura
                 const inputCodigo = document.getElementById('invCodigo');
-                if(inputCodigo) {
-                    inputCodigo.value = ''; 
-                    inputCodigo.blur(); 
+                if (inputCodigo) {
+                    inputCodigo.value = '';
+                    inputCodigo.blur();
                 }
 
                 // Abrimos el modal de edición
                 // Usamos el ID real para asegurar que la edición funcione
                 editarProducto(productoExistente.id, codigoBuscado);
-                
+
             } else {
                 console.log("❌ NO ENCONTRADO en una lista de " + inventario.length + " productos.");
                 // Si no existe, avisamos visualmente y pasamos al nombre
@@ -1176,20 +1432,20 @@
             // Para inventario usamos 'invCodigo', para ventas 'descripcionInput'
             const inputId = prefix === 'inv' ? 'invCodigo' : 'descripcionInput';
             const inputCodigo = document.getElementById(inputId);
-            
-            if(inputCodigo) {
+
+            if (inputCodigo) {
                 inputCodigo.value = decodedText;
                 inputCodigo.classList.add('bg-green-500/20', 'border-green-500');
                 setTimeout(() => {
                     inputCodigo.classList.remove('bg-green-500/20', 'border-green-500');
                 }, 1000);
             }
-            
+
             // Cerrar el escáner automáticamente tras leer
             cerrarScanner(prefix);
 
             // 2. LÓGICA INTELIGENTE SEGÚN LA PANTALLA
-            if (prefix === 'inv') { 
+            if (prefix === 'inv') {
                 verificarExistencia(decodedText);
             } else if (prefix === 'ventas') {
                 // Si estamos en ventas, intentamos agregar el producto directo
@@ -1199,8 +1455,8 @@
 
         function cerrarScanner(prefix) {
             const readerDiv = document.getElementById(`reader-${prefix}`);
-            if(readerDiv) readerDiv.classList.add('hidden');
-            
+            if (readerDiv) readerDiv.classList.add('hidden');
+
             if (html5QrcodeScanner) {
                 html5QrcodeScanner.stop().then(() => {
                     console.log("Escáner detenido");
@@ -1213,7 +1469,7 @@
         function calcularPrecio(prefix) {
             const costo = parseFloat(document.getElementById(`${prefix}Costo`).value) || 0;
             const ganancia = parseFloat(document.getElementById(`${prefix}Ganancia`).value) || 0;
-            
+
             if (costo > 0) {
                 const precioFinal = costo * (1 + (ganancia / 100));
                 document.getElementById(`${prefix}Precio`).value = precioFinal.toFixed(2);
@@ -1229,7 +1485,7 @@
             if (!comercianteData.id) return;
 
             const listEl = document.getElementById('listaInventario');
-            
+
             // ✅ ESTRATEGIA LOCAL-FIRST (PRIMERO LOCAL)
             // 1. Intentar cargar del caché local INMEDIATAMENTE
             const cache = obtenerInventarioCache();
@@ -1237,11 +1493,11 @@
                 console.log('⚡ Carga rápida desde caché local:', cache.length, 'productos');
                 inventario = cache; // Cargamos en RAM
                 renderInventarioList(); // Mostramos en pantalla
-                if(!force && isOnline) {
+                if (!force && isOnline) {
                     mostrarNotificacion('📦 Inventario cargado (Local)', 'success');
                 }
             } else {
-                if(!isOnline) {
+                if (!isOnline) {
                     listEl.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i><p>Sin conexión y sin caché local.</p></div>';
                     return;
                 }
@@ -1254,26 +1510,26 @@
                     listEl.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i><p>Actualizando lista...</p></div>';
                     localStorage.removeItem(STORAGE_KEYS.INVENTARIO_CACHE);
                 }
-                
+
                 try {
                     console.log('🌐 Conectando con servidor para actualizar inventario...');
                     const response = await fetch(`${WEBHOOKS.CONSULTA_INVENTARIO}?id_comerciante=${comercianteData.id}`);
                     const data = await response.json();
-    
+
                     inventario = Array.isArray(data) ? data : (data.productos || []);
-    
+
                     // ✅ Actualizamos el caché con lo nuevo
                     console.log('✅ Inventario actualizado desde servidor:', inventario.length);
                     guardarInventarioCache(inventario);
-    
+
                     renderInventarioList();
-                    if(force) mostrarNotificacion('✅ Inventario actualizado', 'success');
-                    
+                    if (force) mostrarNotificacion('✅ Inventario actualizado', 'success');
+
                 } catch (e) {
                     console.error('❌ Error loading inventory from network:', e);
                     if (force) {
-                         // Si falló la carga forzada y no había caché...
-                         listEl.innerHTML = '<div class="text-center py-8 text-red-400"><i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i><p>Error de conexión</p></div>';
+                        // Si falló la carga forzada y no había caché...
+                        listEl.innerHTML = '<div class="text-center py-8 text-red-400"><i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i><p>Error de conexión</p></div>';
                     }
                 }
             } else if (isOnline && cache.length > 0) {
@@ -1302,7 +1558,7 @@
             const precio = parseFloat(document.getElementById('invPrecio').value);
             const stock = parseInt(document.getElementById('invStock').value) || 0;
             const categoria = document.getElementById('invCategoria').value.trim();
-            
+
             // Nuevos Campos
             const codigo = document.getElementById('invCodigo').value.trim();
             const costo = parseFloat(document.getElementById('invCosto').value) || 0;
@@ -1315,14 +1571,16 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
             btn.disabled = true;
 
+            const idLocal = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // ✅ CORRECCIÓN: Payload correcto para inventario
             const payload = {
                 id_comerciante: comercianteData.id,
                 nombre: nombre,
-                precio_final: precio, // n8n espera precio_final
+                precio: precio,
                 stock: stock,
                 categoria: categoria,
-                // Nuevos campos para n8n
-                codigo_barra: codigo,
+                codigo: codigo,
                 precio_costo: costo,
                 ganancia_porcentaje: ganancia
             };
@@ -1399,10 +1657,10 @@
                 // Probamos todas las combinaciones posibles que n8n/supabase podrían devolver
                 const stock = (p.stock != null) ? p.stock : (p.stock_actual != null ? p.stock_actual : 0);
                 const categoria = p.categoria || p.Categoria || p.category || '-';
-                
+
                 // Manejo de precio: usamos precio_final si existe, sino precio
                 const precioMostrar = p.precio_final || p.precio || 0;
-                
+
                 // ✅ CAMBIO 2: LEER Y MOSTRAR COSTO
                 const costoMostrar = p.precio_costo || 0;
 
@@ -1461,14 +1719,14 @@
             const filtered = inventario.filter(p => {
                 const q = String(query).toLowerCase().trim();
                 const nombre = (p.nombre || '').toLowerCase();
-                
+
                 // ✅ BUSQUEDA ROBUSTA: Agregamos todos los posibles campos de código
                 // Esto asegura que encuentre por codigo, codigo_barra, barcode, id, etc.
                 const codigos = [
-                    p.codigo, 
-                    p.codigo_barra, 
-                    p.Codigo, 
-                    p.barcode, 
+                    p.codigo,
+                    p.codigo_barra,
+                    p.Codigo,
+                    p.barcode,
                     p.id
                 ].map(c => String(c || '').toLowerCase());
 
@@ -1516,8 +1774,11 @@
             if (montoIn.value === '' || parseFloat(montoIn.value) === 0) {
                 montoIn.value = precio;
             }
+            // Resetear cantidad a 1
+            document.getElementById('cantidadInput').value = 1;
+            actualizarTotalItem();
             limpiarBuscador();
-            document.getElementById('montoInput').focus();
+            document.getElementById('cantidadInput').focus();
         }
 
         function limpiarBuscador() {
@@ -1531,7 +1792,7 @@
 
             // 1. Buscamos coincidencia EXACTA por código de barra (más eficiente para scanner)
             const codigoBuscado = String(query).trim().toUpperCase();
-            
+
             // ✅ Búsqueda 100% LOCAL en la variable 'inventario' (que ya está cargada desde caché o red)
             const productoEncontrado = inventario.find(p => {
                 const codigosProducto = [p.id, p.codigo, p.codigo_barra, p.Codigo, p.barcode];
@@ -1547,15 +1808,15 @@
                 // Agregar item
                 ventaActual.items.push({ monto: precio, descripcion: nombre });
                 ventaActual.total += precio;
-                
+
                 // Actualizar UI
                 actualizarDisplayTotal();
                 actualizarListaItems();
                 guardarVentaTemporal();
-                
+
                 // Feedback
                 mostrarNotificacion(`🛒 Agregado: ${nombre}`, 'success');
-                
+
                 // Limpiar y RE-ENFOCAR buscador (para seguir escaneando)
                 const inputDesc = document.getElementById('descripcionInput');
                 const inputMonto = document.getElementById('montoInput');
@@ -1575,15 +1836,15 @@
                 if (productoPorNombre) {
                     const precio = parseFloat(productoPorNombre.precio_final || productoPorNombre.precio || 0);
                     const nombre = productoPorNombre.nombre;
-                    
+
                     ventaActual.items.push({ monto: precio, descripcion: nombre });
                     ventaActual.total += precio;
                     actualizarDisplayTotal();
                     actualizarListaItems();
                     guardarVentaTemporal();
-                    
+
                     mostrarNotificacion(`🛒 Agregado: ${nombre}`, 'success');
-                    
+
                     const inputDesc = document.getElementById('descripcionInput');
                     const inputMonto = document.getElementById('montoInput');
                     inputDesc.value = '';
@@ -1597,44 +1858,69 @@
                 // Si hay resultados visibles en la lista (filtrados previamente), ¿seleccionamos el primero?
                 // Esto podría ser peligroso si el filtro es muy amplio (ej: "A").
                 // Mejor comportamiento: Enfocar monto para carga manual si no se encuentra nada claro.
-                
+
                 const inputMonto = document.getElementById('montoInput');
                 const items = document.querySelectorAll('.search-result-item');
-                
+
                 if (selectedResultIndex >= 0 && items[selectedResultIndex]) {
-                     // Si el usuario seleccionó con flechas
-                     const item = items[selectedResultIndex];
-                     seleccionarProducto(item.dataset.nombre, item.dataset.precio);
+                    // Si el usuario seleccionó con flechas
+                    const item = items[selectedResultIndex];
+                    seleccionarProducto(item.dataset.nombre, item.dataset.precio);
                 } else {
-                     // No hay resultados claros, quizás es un precio directo o producto nuevo no registrado
-                     mostrarNotificacion('⚠️ Producto no encontrado. Ingresa monto manual.', 'warning');
-                     inputMonto.focus();
+                    // No hay resultados claros, quizás es un precio directo o producto nuevo no registrado
+                    mostrarNotificacion('⚠️ Producto no encontrado. Ingresa monto manual.', 'warning');
+                    inputMonto.focus();
                 }
             }
+        }
+
+        // ✅ Nueva función para calcular total del item en tiempo real
+        function actualizarTotalItem() {
+            const cantidad = parseInt(document.getElementById('cantidadInput').value) || 1;
+            const precioUnitario = parseFloat(document.getElementById('montoInput').value) || 0;
+            const total = cantidad * precioUnitario;
+            document.getElementById('totalItemDisplay').textContent = `$ ${total.toFixed(2)}`;
         }
 
         function agregarItem() {
             const inputMonto = document.getElementById('montoInput');
             const inputDesc = document.getElementById('descripcionInput');
-            const monto = parseFloat(inputMonto.value);
+            const inputCantidad = document.getElementById('cantidadInput');
 
-            if (!monto || monto <= 0) { mostrarNotificacion('⚠️ Ingresa monto válido', 'error'); return; }
+            const precioUnitario = parseFloat(inputMonto.value);
+            const cantidad = parseInt(inputCantidad.value) || 1;
+            const montoTotal = precioUnitario * cantidad;
 
-            const descripcion = inputDesc.value.trim() || `Producto ${contadorProductos}`; // Corregido para usar contador
-            ventaActual.items.push({ monto: monto, descripcion: descripcion });
-            // contadorProductos++; // No usamos contador global incremental para nombre genérico, mejor 'Item'
-            
-            ventaActual.total += monto;
+            if (!precioUnitario || precioUnitario <= 0) {
+                mostrarNotificacion('⚠️ Ingresa precio válido', 'error');
+                return;
+            }
+
+            const descripcion = inputDesc.value.trim() || `Item ${contadorProductos}`;
+
+            // ✅ Guardamos cantidad en el item
+            ventaActual.items.push({
+                monto: montoTotal,
+                precio_unitario: precioUnitario,
+                cantidad: cantidad,
+                descripcion: descripcion
+            });
+            contadorProductos++;
+
+            ventaActual.total += montoTotal;
 
             actualizarDisplayTotal();
             actualizarListaItems();
             guardarVentaTemporal();
 
+            // Limpiar campos
             inputMonto.value = '';
             inputDesc.value = '';
-            
-            // ✅ CAMBIO CLAVE: VOLVER EL FOCO AL BUSCADOR
-            inputDesc.focus(); 
+            inputCantidad.value = 1;
+            actualizarTotalItem();
+
+            // ✅ VOLVER EL FOCO AL BUSCADOR
+            inputDesc.focus();
             limpiarBuscador();
         }
 
@@ -1666,17 +1952,25 @@
                 return;
             }
 
-            list.innerHTML = ventaActual.items.map((item, idx) => `
+            list.innerHTML = ventaActual.items.map((item, idx) => {
+                const cantidad = item.cantidad || 1;
+                const precioUnit = item.precio_unitario || item.monto;
+                const cantidadLabel = cantidad > 1 ? `<span class="text-xs text-secondary">x${cantidad}</span>` : '';
+
+                return `
                 <div class="flex justify-between items-center p-3 bg-dark/40 rounded-xl border border-gray-700 group hover:border-primary/30 transition-all">
                     <div class="flex-1">
-                        <div class="text-xs font-medium text-gray-200 truncate pr-2">${item.descripcion}</div>
+                        <div class="text-xs font-medium text-gray-200 truncate pr-2 flex items-center gap-2">
+                            ${item.descripcion} ${cantidadLabel}
+                        </div>
                         <div class="text-lg font-bold text-primary font-mono">$ ${item.monto.toFixed(2)}</div>
+                        ${cantidad > 1 ? `<div class="text-[10px] text-gray-500">$${precioUnit.toFixed(2)} c/u</div>` : ''}
                     </div>
                     <button onclick="eliminarItem(${idx})" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all">
                         <i class="fa-solid fa-times"></i>
                     </button>
                 </div>
-            `).reverse().join(''); // Mostrar más recientes arriba
+            `}).reverse().join(''); // Mostrar más recientes arriba
         }
 
         function eliminarItem(idx) {
@@ -1717,7 +2011,9 @@
             if (btnMob) btnMob.disabled = true;
 
             const ahora = new Date();
-            const fechaHoraLocal = ahora.toISOString();
+            const fechaHoraLocal = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000))
+                .toISOString()
+                .replace('Z', '-03:00');
             const idLocal = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
             // ✅ PREPARAR ITEMS PARA ENVIAR (INCLUYENDO COSTO)
@@ -1727,7 +2023,7 @@
                 // Nota: Esto es una aproximación, idealmente guardaríamos el ID del producto al agregar
                 const producto = inventario.find(p => p.nombre === item.descripcion);
                 const costoUnitario = producto ? (parseFloat(producto.precio_costo) || 0) : 0;
-                
+
                 return {
                     descripcion: item.descripcion,
                     monto: item.monto,
@@ -1740,7 +2036,10 @@
                 tipo: 'INGRESO',
                 monto: ventaActual.total,
                 metodo: metodoPago,
-                descripcion: ventaActual.items.map((item, i) => `${i + 1}. ${item.descripcion}: $${item.monto.toFixed(2)}`).join(', '),
+                descripcion: ventaActual.items.map((item, i) => {
+                    const cant = item.cantidad || 1;
+                    return cant > 1 ? `${i + 1}. ${item.descripcion} x${cant}: $${item.monto.toFixed(2)}` : `${i + 1}. ${item.descripcion}: $${item.monto.toFixed(2)}`;
+                }).join(', '),
                 items: itemsConCosto, // Enviamos items enriquecidos
                 fecha_hora: fechaHoraLocal,
                 id_local: idLocal
@@ -1804,13 +2103,19 @@
             // ✅ Generar ID local único para evitar duplicados
             const idLocal = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+            // ✅ CORRECCIÓN: Variables fuera del objeto payload
+            const ahora = new Date();
+            const fechaHoraLocal = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000))
+                .toISOString()
+                .replace('Z', '-03:00');
+
             const payload = {
                 id_comerciante: comercianteData.id,
                 tipo: 'GASTO',
                 monto: monto,
                 categoria: cat,
                 descripcion: desc || `Gasto: ${cat}`,
-                fecha_hora: new Date().toISOString(),
+                fecha_hora: fechaHoraLocal,
                 id_local: idLocal
             };
 
@@ -1863,16 +2168,39 @@
             try {
                 // ✅ SE CORRIGIÓ LA LÓGICA DE FECHAS EN 'obtenerRangoFechas' (Ver abajo)
                 const { fechaDesde, fechaHasta } = obtenerRangoFechas(filtroActual);
-                
-                // Le pasamos las fechas exactas al Webhook
-                const url = `${WEBHOOKS.HISTORIAL}?comercio_id=${comercianteData.id}&fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`;
-                console.log('📅 Solicitando historial:', fechaDesde, 'a', fechaHasta);
-                
+
+                // ✅ FIX: Agregar timestamp para evitar caché del navegador al cambiar de dispositivo
+                // ✅ FIX: Asegurar que el ID del comerciante se envíe correctamente en la URL
+                const url = `${WEBHOOKS.HISTORIAL}?comercio_id=${comercianteData.id}&fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}&_t=${Date.now()}`;
+
+                console.log('📅 Solicitando historial para:', comercianteData.id);
+                console.log('📅 Fechas:', fechaDesde, 'a', fechaHasta);
+
                 const response = await fetch(url);
                 const data = await response.json();
 
-                transaccionesData = data.transacciones || data || [];
-                renderHistorial(transaccionesData);
+                // ✅ FIX ROBUSTEZ: Búsqueda "chismosa" de los datos
+                // Buscamos el array de transacciones donde sea que se esconda
+                let result = [];
+                if (Array.isArray(data)) {
+                    result = data;
+                } else if (data.transacciones && Array.isArray(data.transacciones)) {
+                    result = data.transacciones;
+                } else if (data.data && Array.isArray(data.data)) { // Estructura común de n8n
+                    result = data.data;
+                } else if (data.result && Array.isArray(data.result)) { // Otra estructura común
+                    result = data.result;
+                } else if (data.json && Array.isArray(data.json)) { // Otra variante
+                    result = data.json;
+                }
+
+                console.log("Datos recibidos crudos:", data);
+                console.log("Datos procesados como array:", result);
+
+                transaccionesData = result;
+
+                // Pasar las fechas para mostrarlas en la UI si está vacío
+                renderHistorial(transaccionesData, fechaDesde, fechaHasta);
             } catch (error) {
                 console.error('Error Historial:', error);
                 container.innerHTML = '<div class="text-center text-red-500 py-10">Error al cargar historial</div>';
@@ -1892,40 +2220,36 @@
             cargarHistorial();
         }
 
-        // ✅ LÓGICA DE FECHAS CORREGIDA SEGÚN TU PEDIDO EXACTO
+        // ✅ LÓGICA DE FECHAS CORREGIDA (FIX PARA ARGENTINA/LATAM)
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function obtenerRangoFechas(filtro) {
             const ahora = new Date();
-            let fechaDesde = new Date();
-            // Aseguramos que siempre empiece a las 00:00:00
-            fechaDesde.setHours(0, 0, 0, 0);
+            let desde = new Date();
 
-            if (filtro === 'hoy') {
-                // No hacemos nada, ya está en hoy 00:00
-            } else if (filtro === 'semana') {
-                // ✅ SEMANA: Empezar desde el Domingo (0)
-                const day = ahora.getDay(); // 0 es Domingo
-                fechaDesde.setDate(ahora.getDate() - day);
+            // Resetear horas para comparaciones limpias
+            desde.setHours(0, 0, 0, 0);
+
+            if (filtro === 'semana') {
+                const day = ahora.getDay();
+                // Ajustar al domingo (0) o lunes según preferencia, aquí restamos días desde hoy
+                const diff = ahora.getDate() - day;
+                desde.setDate(diff);
             } else if (filtro === 'mes') {
-                // ✅ MES: Día 1 del mes actual
-                fechaDesde.setDate(1);
+                desde.setDate(1);
             } else if (filtro === 'año') {
-                // ✅ AÑO: 1 de Enero
-                fechaDesde.setMonth(0, 1);
+                desde.setMonth(0, 1);
             }
+            // Si es 'hoy', ya está en 00:00:00
 
-            // Formato YYYY-MM-DD para Supabase/N8N
-            const format = (d) => {
-                const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            };
-            
-            // Para 'hasta', usamos el momento actual (o fin del día si quisieras)
-            // Usamos ahora tal cual para capturar hasta el último segundo
-            return { 
-                fechaDesde: format(fechaDesde), 
-                fechaHasta: format(ahora) 
+            return {
+                fechaDesde: formatDate(desde),
+                fechaHasta: formatDate(ahora)
             };
         }
 
@@ -1936,13 +2260,18 @@
             return dateStr.substring(0, 16).replace('T', ' ');
         }
 
-        function renderHistorial(datos) {
+        function renderHistorial(datos, fDesde, fHasta) {
             const container = document.getElementById('transactionsContainer');
             let ingresos = 0, gastos = 0;
 
             datos.forEach(t => {
-                if (t.tipo === 'INGRESO') ingresos += parseFloat(t.monto);
-                if (t.tipo === 'GASTO') gastos += parseFloat(t.monto);
+                // ✅ FIX: Hacer comparación insensible a mayúsculas/minúsculas
+                const tipo = (t.tipo || '').toUpperCase();
+                // Asegurar que monto sea número aunque venga como string
+                const monto = parseFloat(t.monto) || 0;
+
+                if (tipo === 'INGRESO') ingresos += monto;
+                if (tipo === 'GASTO') gastos += monto;
             });
 
             // ✅ RESUMEN EN PANTALLA ACTUALIZADO (HOY/SEMANA/MES)
@@ -1951,9 +2280,9 @@
             const balance = ingresos - gastos;
             const balanceEl = document.getElementById('balanceTotal');
             balanceEl.textContent = `$ ${balance.toFixed(2)}`;
-            
+
             // Color dinámico para el balance
-            if(balance >= 0) {
+            if (balance >= 0) {
                 balanceEl.classList.remove('text-red-500');
                 balanceEl.classList.add('text-white');
             } else {
@@ -1962,7 +2291,17 @@
             }
 
             if (datos.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 py-8">No hay movimientos en este periodo</p>';
+                // ✅ Feedback visual de qué se consultó
+                let rangoMsg = '';
+                if (fDesde && fHasta) {
+                    rangoMsg = `<br><span class="text-xs text-gray-600 mt-2 block">Consulta: ${fDesde} al ${fHasta}</span>`;
+                }
+
+                container.innerHTML = `<div class="text-center py-8 text-gray-500">
+                    <p>No hay movimientos en este periodo</p>
+                    ${rangoMsg}
+                    <button onclick="cambiarFiltro('año')" class="mt-4 text-xs text-primary underline">Ver todo el año</button>
+                </div>`;
                 return;
             }
 
@@ -2084,13 +2423,13 @@
 
             document.getElementById('editInvNombre').value = prod.nombre;
             document.getElementById('editInvCategoria').value = prod.categoria || prod.Categoria || '';
-            
+
             // Usamos precio_final si existe (n8n standard), sino precio
             document.getElementById('editInvPrecio').value = prod.precio_final || prod.precio;
-            
+
             // Stock
             document.getElementById('editInvStock').value = (prod.stock != null) ? prod.stock : (prod.stock_actual != null ? prod.stock_actual : 0);
-            
+
             // Código (mostramos el que se usará para actualizar)
             document.getElementById('editInvCodigo').value = productoEditando;
 
@@ -2116,23 +2455,23 @@
             const categoria = document.getElementById('editInvCategoria').value.trim();
             const precio = parseFloat(document.getElementById('editInvPrecio').value);
             const stock = parseInt(document.getElementById('editInvStock').value) || 0;
-            
+
             // ✅ LEER COSTO Y GANANCIA
             const costo = parseFloat(document.getElementById('editInvCosto').value) || 0;
             const ganancia = parseFloat(document.getElementById('editInvGanancia').value) || 0;
 
             if (!nombre || !precio) { mostrarNotificacion('⚠️ Nombre y Precio requeridos', 'error'); return; }
 
+            // ✅ CORRECCIÓN: Payload correcto para editar inventario
             const payload = {
-                id: productoEditando,
+                codigo: productoEditando,
+                id_comerciante: comercianteData.id,
                 nombre: nombre,
                 categoria: categoria,
-                // ✅ CORREGIDO: Enviar como 'precio_final' que es lo que espera n8n
-                precio_final: precio, 
+                precio: precio,
                 stock: stock,
-                precio_costo: costo, // ✅ ENVIAR COSTO
-                ganancia_porcentaje: ganancia,
-                comercio_id: comercianteData.id
+                precio_costo: costo,
+                ganancia_porcentaje: ganancia
             };
 
             console.log("🚀 Enviando actualización a n8n:", payload);
@@ -2151,7 +2490,7 @@
 
                 mostrarNotificacion('✅ Producto actualizado', 'success');
                 cerrarModalEditProducto();
-                await cargarInventario(true); 
+                await cargarInventario(true);
             } catch (e) {
                 console.error("❌ Error en guardarEdicionProducto:", e);
                 mostrarNotificacion(`❌ Error: ${e.message}`, 'error');
@@ -2169,7 +2508,7 @@
             document.getElementById('modalSolicitarReporte').classList.remove('flex');
         }
 
-        // ✅ LÓGICA ACTIVADA: ENVIAR REPORTE
+        // ✅ LÓGICA ACTIVADA: ENVIAR REPORTE (REVISADA)
         async function enviarSolicitudReporte(periodo) {
             cerrarModalReporte();
 
@@ -2178,13 +2517,21 @@
                 return;
             }
 
+            // ✅ VALIDACIÓN EXTRA: ¿Tenemos el ID del comerciante?
+            if (!comercianteData.id) {
+                mostrarNotificacion('⚠️ Error: ID de comercio no detectado', 'error');
+                console.error("ID de comercio faltante al solicitar reporte");
+                return;
+            }
+
             mostrarNotificacion(`📧 Solicitando reporte (${periodo})...`, 'warning');
-            console.log(`Solicitando reporte para periodo: ${periodo}`);
+            console.log(`Solicitando reporte para periodo: ${periodo} (ID: ${comercianteData.id})`);
 
             try {
                 // Obtenemos fechas exactas para el reporte
                 const { fechaDesde, fechaHasta } = obtenerRangoFechas(periodo);
 
+                // ✅ PAYLOAD EXACTO SEGÚN TU SOLICITUD (Solo ID y fechas)
                 const response = await fetch(WEBHOOKS.REPORTE_EMAIL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2192,20 +2539,19 @@
                         id_comerciante: comercianteData.id,
                         periodo: periodo, // "hoy", "semana", "mes"
                         fecha_desde: fechaDesde,
-                        fecha_hasta: fechaHasta,
-                        email_destinacion: "arnaldoayalaestratega@gmail.com" // (Opcional, si n8n lo requiere)
+                        fecha_hasta: fechaHasta
                     })
                 });
 
-                if(response.ok) {
-                    mostrarNotificacion(`✅ Reporte enviado a tu correo`, 'success');
+                if (response.ok) {
+                    mostrarNotificacion(`✅ Solicitud enviada correctamente`, 'success');
                 } else {
                     throw new Error('Error al generar reporte');
                 }
 
             } catch (e) {
                 console.error(e);
-                mostrarNotificacion('❌ Error al solicitar reporte', 'error');
+                mostrarNotificacion('❌ Error de conexión al solicitar reporte', 'error');
             }
         }
 
@@ -2266,6 +2612,125 @@
             }
         }
         function limpiarVentaTemporal() { localStorage.removeItem('venta_temp'); }
+
+        // ==========================================
+        //  FUNCIONES DE CONFIGURACIÓN
+        // ==========================================
+
+        function cerrarSesion() {
+            if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+                // Verificar transacciones pendientes
+                const queue = obtenerQueue();
+
+                if (queue.length > 0) {
+                    alert(`⚠️ Tienes ${queue.length} transacciones pendientes de sincronizar. Por favor conecta a internet antes de cerrar sesión.`);
+                    return;
+                }
+
+                // ✅ GUARDAR DATOS QUE QUEREMOS MANTENER (Configuración local del dispositivo)
+                // Esto es necesario porque queremos limpiar la sesión pero no las preferencias del dispositivo
+                const sonidos = localStorage.getItem('sonidosEnabled');
+
+                // Guardamos las imágenes de perfil de todos los usuarios que hayan iniciado sesión aquí
+                // Filtramos las keys que empiezan con 'perfil_imagen_'
+                const imagenesPerfil = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('perfil_imagen_')) {
+                        imagenesPerfil[key] = localStorage.getItem(key);
+                    }
+                }
+
+                // Limpiar todo (seguro para borrar datos sensibles)
+                localStorage.clear();
+                sessionStorage.clear();
+
+                // ✅ RESTAURAR PREFERENCIAS
+                if (sonidos !== null) localStorage.setItem('sonidosEnabled', sonidos);
+
+                // Restaurar imágenes
+                Object.keys(imagenesPerfil).forEach(key => {
+                    localStorage.setItem(key, imagenesPerfil[key]);
+                });
+
+                // Redirigir al login
+                window.location.href = 'index.html';
+            }
+        }
+
+        function limpiarCache() {
+            if (confirm('¿Limpiar todos los datos locales? Esta acción no se puede deshacer.\n\nNota: Las transacciones pendientes de sincronizar se perderán.')) {
+                localStorage.clear();
+                mostrarNotificacion('🗑️ Caché limpiado', 'success');
+                setTimeout(() => location.reload(), 1500);
+            }
+        }
+
+        function toggleSonido() {
+            const sonidoToggle = document.getElementById('sonidoToggle');
+            const enabled = sonidoToggle.checked;
+            localStorage.setItem('sonidosEnabled', enabled);
+            mostrarNotificacion(enabled ? '🔔 Sonidos habilitados' : '🔕 Sonidos deshabilitados', 'success');
+        }
+
+        // ==========================================
+        //  LÓGICA PERFIL DE USUARIO
+        // ==========================================
+
+        function abrirPerfil() {
+            document.getElementById('modalPerfil').classList.remove('hidden');
+
+            // Actualizar Datos
+            document.getElementById('perfilNombre').textContent = comercianteData.nombre || 'Comerciante';
+            document.getElementById('perfilId').textContent = `ID: ${comercianteData.id || '---'}`;
+            document.getElementById('perfilComercio').textContent = comercianteData.nombre || 'Mi Comercio';
+
+            // Cargar imagen si existe
+            cargarImagenPerfilUI();
+        }
+
+        function cerrarPerfil() {
+            document.getElementById('modalPerfil').classList.add('hidden');
+        }
+
+        function actualizarFotoPerfil(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const imageData = e.target.result;
+                    // Guardar en localStorage
+                    localStorage.setItem('perfil_imagen_' + comercianteData.id, imageData);
+
+                    // Actualizar UI
+                    cargarImagenPerfilUI();
+                    mostrarNotificacion('📸 Foto de perfil actualizada', 'success');
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function cargarImagenPerfilUI() {
+            const savedImage = localStorage.getItem('perfil_imagen_' + comercianteData.id);
+            const defaultImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(comercianteData.nombre || 'User')}&background=random&size=128`;
+
+            const src = savedImage || defaultImage;
+
+            // Actualizar todas las instancias de la imagen de perfil
+            const imgs = document.querySelectorAll('#profileImageBtn, #profileImageModal');
+            imgs.forEach(img => img.src = src);
+
+            // Actualizar nombre pequeño
+            const miniName = document.getElementById('miniPerfilNombre');
+            if (miniName) miniName.textContent = (comercianteData.nombre || 'Comerciante').split(' ')[0];
+        }
+
+        // Cargar imagen al iniciar también
+        document.addEventListener('DOMContentLoaded', () => {
+            // Un pequeño delay para asegurar que comercianteData tenga algo si viene de caché
+            setTimeout(cargarImagenPerfilUI, 500);
+        });
 
         // Enter key handlers
         document.addEventListener('DOMContentLoaded', function () {
