@@ -13,6 +13,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- LIBRERÍA ESCÁNER CÓDIGO DE BARRAS -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -20,8 +23,8 @@
                     colors: {
                         dark: '#0f172a',
                         card: '#1e293b',
-                        primary: '#10b981',
-                        secondary: '#3b82f6',
+                        primary: '#3b82f6',
+                        secondary: '#6366f1',
                         accent: '#8b5cf6',
                         warning: '#ef4444',
                         gold: '#f59e0b',
@@ -92,6 +95,63 @@
 
         .btn-check-mobile {
             display: none;
+        }
+
+        .search-result-item.selected {
+            background-color: rgba(59, 130, 246, 0.2) !important;
+            border-left: 4px solid #3b82f6;
+        }
+
+        @media (max-width: 768px) {
+            #inventario-screen thead {
+                display: none !important;
+            }
+
+            #listaInventario {
+                display: block;
+                width: 100%;
+            }
+
+            #listaInventario tr {
+                display: block;
+                margin-bottom: 1.5rem;
+                background: rgba(30, 41, 59, 0.4);
+                border-radius: 1.5rem;
+                padding: 1.25rem;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            #listaInventario td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+                text-align: right;
+                width: 100%;
+            }
+
+            #listaInventario td:last-child {
+                border-bottom: 0;
+                margin-top: 1rem;
+                padding-top: 1.25rem;
+                justify-content: center;
+                gap: 1rem;
+            }
+
+            #listaInventario td::before {
+                content: attr(data-label);
+                font-weight: 800;
+                color: #94a3b8;
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-right: 1.5rem;
+                text-align: left;
+                flex-shrink: 0;
+            }
         }
     </style>
 </head>
@@ -242,9 +302,15 @@
                         class="md:hidden flex items-center text-gray-400 hover:text-white">
                         <i class="fa-solid fa-arrow-left mr-2"></i> Volver
                     </button>
-                    <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
-                        <i class="fa-solid fa-cart-shopping"></i> Nueva Venta
-                    </h2>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
+                            <i class="fa-solid fa-cart-shopping"></i> Nueva Venta
+                        </h2>
+                        <!-- ✅ Nuevo Botón Refrescar Inventario en Ventas -->
+                        <button onclick="cargarInventario(true)" class="text-gray-400 hover:text-white transition-colors" title="Actualizar Inventario">
+                            <i class="fa-solid fa-sync"></i>
+                        </button>
+                    </div>
                     <div class="hidden md:block"></div>
                 </div>
 
@@ -253,19 +319,36 @@
                     <div class="flex-1 space-y-6">
                         <!-- Input Section (Larger Search) -->
                         <div class="glass-panel rounded-2xl p-6">
-                            <div class="relative mb-4">
-                                <i
-                                    class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                <input type="text" id="descripcionInput" oninput="buscarProductos(this.value)"
-                                    class="w-full bg-dark/50 border border-gray-600 rounded-2xl pl-12 pr-12 py-4 text-white text-lg focus:outline-none focus:border-primary transition-all"
-                                    placeholder="Buscar producto por nombre o código...">
-                                <button id="btnClearSearch" onclick="limpiarBuscador()"
-                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white hidden">
-                                    <i class="fa-solid fa-times text-xl"></i>
-                                </button>
+                            
+                            <!-- ✅ SECCIÓN DE BÚSQUEDA Y ESCANEO EN VENTAS -->
+                            <div class="mb-4">
+                                <div class="flex gap-2">
+                                    <div class="relative flex-1">
+                                        <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                        <!-- onkeydown detecta Enter (USB scanner o teclado) para agregar rápido -->
+                                        <input type="text" id="descripcionInput" 
+                                            oninput="buscarProductos(this.value)"
+                                            onkeydown="if(event.key === 'Enter'){ handleVentasEnter(this.value); }"
+                                            class="w-full bg-dark/50 border border-gray-600 rounded-2xl pl-12 pr-12 py-4 text-white text-lg focus:outline-none focus:border-primary transition-all"
+                                            placeholder="Buscar producto o Escanear...">
+                                    
+                                        <button id="btnClearSearch" onclick="limpiarBuscador()"
+                                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white hidden">
+                                            <i class="fa-solid fa-times text-xl"></i>
+                                        </button>
+                                    </div>
+                                    <!-- Botón Escáner Ventas -->
+                                    <button type="button" onclick="toggleScanner('ventas')" class="bg-gray-700 hover:bg-gray-600 text-white px-5 rounded-2xl transition-colors flex items-center justify-center border border-gray-600">
+                                        <i class="fa-solid fa-barcode text-2xl"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Contenedor de la cámara Ventas -->
+                                <div id="reader-ventas" class="hidden w-full rounded-xl overflow-hidden border-2 border-primary mt-2"></div>
+                                
                                 <!-- Resultados de búsqueda -->
                                 <div id="productosResultados"
-                                    class="hidden absolute z-30 w-full mt-2 bg-gray-800 border border-gray-600 rounded-xl shadow-2xl max-h-80 overflow-y-auto">
+                                    class="hidden z-30 w-full mt-2 bg-gray-800 border border-gray-600 rounded-xl shadow-2xl max-h-80 overflow-y-auto">
                                 </div>
                             </div>
 
@@ -310,11 +393,11 @@
                                 </div>
                                 <div class="flex justify-between items-end">
                                     <span class="text-gray-400 font-bold uppercase text-xs">Total a Pagar</span>
-                                    <div id="totalDisplay" class="text-3xl font-mono font-black text-primary">$ 0.00
+                                    <div id="totalDisplay" class="text-4xl font-mono font-black text-white">$ 0.00
                                     </div>
                                 </div>
                                 <button id="btnCobrar" onclick="mostrarModalCobro()" disabled
-                                    class="w-full bg-gradient-to-r from-primary to-emerald-600 text-dark font-black text-lg py-4 rounded-2xl shadow-lg shadow-primary/20 disabled:opacity-50 disabled:grayscale transition-all active:scale-95 flex items-center justify-center gap-3">
+                                    class="w-full bg-gradient-to-r from-primary to-blue-600 text-dark font-black text-lg py-4 rounded-2xl shadow-lg shadow-primary/20 disabled:opacity-50 disabled:grayscale transition-all active:scale-95 flex items-center justify-center gap-3">
                                     <i class="fa-solid fa-cash-register"></i>
                                     <span>COBRAR TICKET</span>
                                 </button>
@@ -328,7 +411,7 @@
                     class="md:hidden fixed bottom-0 left-0 w-full bg-dark/95 backdrop-blur-xl border-t border-gray-800 p-4 z-40 pb-20">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-gray-400 font-bold uppercase text-xs">Total a Pagar</span>
-                        <div id="totalMobDisplay" class="text-3xl font-mono font-black text-primary">$ 0.00</div>
+                        <div id="totalMobDisplay" class="text-4xl font-mono font-black text-white">$ 0.00</div>
                     </div>
                     <button id="btnCobrarMob" onclick="mostrarModalCobro()" disabled
                         class="w-full bg-primary text-dark font-black text-xl py-4 rounded-2xl shadow-lg shadow-primary/20 disabled:opacity-50">
@@ -400,21 +483,23 @@
                             <i class="fa-solid fa-list-check"></i> Historial
                         </h2>
                     </div>
+                    <!-- Botón para abrir modal de reporte -->
                     <button onclick="abrirModalReporte()"
                         class="w-full md:w-auto bg-secondary/20 hover:bg-secondary text-secondary hover:text-dark px-4 py-3 md:py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-2 text-xs">
                         <i class="fa-solid fa-file-export"></i> SOLICITAR REPORTE
                     </button>
                 </div>
 
-                <!-- Balance Cards -->
+                <!-- Balance Cards (Visual Summary) -->
+                <!-- ✅ Estas tarjetas mostrarán los totales correspondientes al filtro activo (Hoy, Semana, Mes, Año) -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div
                         class="col-span-1 md:col-span-3 bg-gradient-to-r from-gray-800 to-gray-900 border border-secondary/30 rounded-2xl p-6 text-center">
-                        <div class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">Balance Neto</div>
+                        <div class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">Balance Neto (Ganancia)</div>
                         <div id="balanceTotal" class="text-4xl md:text-5xl font-mono font-bold text-white">$ 0.00</div>
                     </div>
                     <div class="bg-card/50 border border-primary/20 rounded-xl p-4 text-center">
-                        <div class="text-xs text-gray-400 uppercase">Ingresos</div>
+                        <div class="text-xs text-gray-400 uppercase">Ingresos (Ventas)</div>
                         <div id="totalIngresos" class="text-2xl font-bold text-primary">$ 0.00</div>
                     </div>
                     <div class="bg-card/50 border border-warning/20 rounded-xl p-4 text-center">
@@ -427,13 +512,13 @@
                 <div
                     class="flex justify-center p-1 bg-gray-800 rounded-lg mb-6 max-w-lg mx-auto overflow-x-auto scrollbar-none">
                     <button
-                        class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium active bg-gray-700 text-white whitespace-nowrap"
+                        class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium text-gray-400 whitespace-nowrap"
                         data-filter="hoy" onclick="cambiarFiltro('hoy')">Hoy</button>
                     <button
                         class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium text-gray-400 whitespace-nowrap"
                         data-filter="semana" onclick="cambiarFiltro('semana')">Esta Semana</button>
                     <button
-                        class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium text-gray-400 whitespace-nowrap"
+                        class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium active bg-gray-700 text-white whitespace-nowrap"
                         data-filter="mes" onclick="cambiarFiltro('mes')">Este Mes</button>
                     <button
                         class="filter-tab flex-1 py-2 px-3 rounded-md text-xs font-medium text-gray-400 whitespace-nowrap"
@@ -449,8 +534,8 @@
                 </div>
             </div>
 
-            <!-- INVENTARIO SCREEN -->
-            <div id="inventario-screen" class="screen max-w-lg mx-auto">
+            <!-- INVENTARIO SCREEN (ACTUALIZADO CON ESCÁNER Y COSTOS) -->
+            <div id="inventario-screen" class="screen max-w-6xl mx-auto">
                 <div class="flex items-center justify-between mb-8">
                     <button onclick="showMenuScreen()"
                         class="md:hidden flex items-center text-gray-400 hover:text-white">
@@ -462,79 +547,105 @@
                     <div></div>
                 </div>
 
+                <!-- FORMULARIO CREAR PRODUCTO NUEVO -->
                 <div class="glass-panel rounded-2xl p-6 mb-6">
                     <h3 class="text-gold font-bold mb-4 uppercase text-xs">Nuevo Producto</h3>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Nombre del
-                                    Producto</label>
-                                <input type="text" id="invNombre"
-                                    class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Categoría</label>
-                                <input type="text" id="invCategoria"
-                                    class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
-                            <div>
-                                <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Precio ($)</label>
-                                <input type="number" id="invPrecio"
-                                    class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Stock</label>
-                                <input type="number" id="invStock"
-                                    class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Código</label>
-                                <input type="text" id="invCodigo" readonly
-                                    class="w-full bg-dark/50 border border-gray-700 rounded-lg px-4 py-3 text-gray-500 cursor-not-allowed text-sm">
-                            </div>
-                            <button onclick="guardarProducto()" id="btnGuardarProducto"
-                                class="h-[50px] bg-gold hover:bg-amber-600 text-dark font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-gold/20">
-                                <i class="fa-solid fa-plus"></i> Agregar
+                    
+                    <!-- Sección Escáner (Nuevo) -->
+                    <div class="mb-5 space-y-2">
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Código de Barras</label>
+                        <div class="flex gap-2">
+                            <!-- MODIFICADO: Agregamos onkeydown para capturar el Enter del escáner USB instantáneamente -->
+                            <input type="text" id="invCodigo" 
+                                onkeydown="if(event.key === 'Enter') { event.preventDefault(); verificarExistencia(this.value); }" 
+                                class="flex-1 bg-dark/50 border border-gray-600 rounded-xl px-4 py-3 text-white focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all" 
+                                placeholder="Escanea o escribe el código y presiona Enter...">
+                            <button type="button" onclick="toggleScanner('inv')" class="bg-gray-700 hover:bg-gray-600 text-white px-4 rounded-xl transition-colors flex items-center justify-center">
+                                <i class="fa-solid fa-barcode text-xl"></i>
                             </button>
+                        </div>
+                        <!-- Contenedor de la cámara -->
+                        <div id="reader-inv" class="hidden w-full rounded-xl overflow-hidden border-2 border-gold mt-2"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Nombre del Producto</label>
+                            <input type="text" id="invNombre"
+                                class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Categoría</label>
+                            <input type="text" id="invCategoria"
+                                class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold">
                         </div>
                     </div>
 
-                    <div class="glass-panel rounded-xl overflow-hidden">
-                        <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
-                            <h3 class="font-bold text-gray-300">Lista de Productos</h3>
-                            <button onclick="cargarInventario()"
-                                class="text-xs text-gold hover:text-white flex items-center gap-1">
-                                <i class="fa-solid fa-sync"></i> Actualizar
-                            </button>
+                    <!-- Fila de Precios con Cálculo Automático -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 items-end mb-4">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Costo ($)</label>
+                            <input type="number" id="invCosto" step="0.01" oninput="calcularPrecio('inv')"
+                                class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold" placeholder="0.00">
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead
-                                    class="bg-dark/50 text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-700">
-                                    <tr>
-                                        <th class="px-4 py-3 font-bold">Producto</th>
-                                        <th class="px-4 py-3 font-bold">Categoría</th>
-                                        <th class="px-4 py-3 font-bold text-center">Precio</th>
-                                        <th class="px-4 py-3 font-bold text-center">Stock</th>
-                                        <th class="px-4 py-3 font-bold text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="listaInventario" class="divide-y divide-gray-800 text-sm">
-                                    <tr>
-                                        <td colspan="5" class="text-center py-8 text-gray-500">
-                                            <i class="fa-solid fa-box-open text-3xl mb-2 opacity-50 block mx-auto"></i>
-                                            Cargando inventario...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Ganancia %</label>
+                            <input type="number" id="invGanancia" step="0.01" oninput="calcularPrecio('inv')"
+                                class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold" placeholder="30">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gold mb-2 font-bold uppercase">Precio Final</label>
+                            <input type="number" id="invPrecio" step="0.01" 
+                                class="w-full bg-gold/10 border border-gold rounded-lg px-4 py-3 text-white font-bold focus:outline-none" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-2 font-bold uppercase">Stock</label>
+                            <input type="number" id="invStock"
+                                class="w-full bg-dark/50 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold">
                         </div>
                     </div>
+
+                    <button onclick="guardarProducto()" id="btnGuardarProducto"
+                        class="w-full h-[50px] bg-gold hover:bg-amber-600 text-dark font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-gold/20">
+                        <i class="fa-solid fa-plus"></i> Guardar Producto
+                    </button>
                 </div>
 
+                <div class="glass-panel rounded-xl overflow-hidden md:overflow-visible">
+                    <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
+                        <h3 class="font-bold text-gray-300">Lista de Productos</h3>
+                        <button onclick="cargarInventario()"
+                            class="text-xs text-gold hover:text-white flex items-center gap-1">
+                            <i class="fa-solid fa-sync"></i> Actualizar
+                        </button>
+                    </div>
+                    <div class="md:overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <!-- ✅ CAMBIO 1: AGREGADA COLUMNA COSTO -->
+                            <thead class="bg-dark/50 text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-700">
+                                <tr>
+                                    <th class="px-4 py-3 font-bold">Producto</th>
+                                    <th class="px-4 py-3 font-bold">Categoría</th>
+                                    <th class="px-4 py-3 font-bold text-center">Costo</th> <!-- Agregado -->
+                                    <th class="px-4 py-3 font-bold text-center">Precio</th>
+                                    <th class="px-4 py-3 font-bold text-center">Stock</th>
+                                    <th class="px-4 py-3 font-bold text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaInventario" class="divide-y divide-gray-800 text-sm">
+                                <tr>
+                                    <td colspan="6" class="text-center py-8 text-gray-500">
+                                        <i class="fa-solid fa-box-open text-3xl mb-2 opacity-50 block mx-auto"></i>
+                                        Cargando inventario...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
+        </div>
     </main>
 
     <!-- MOBILE BOTTOM NAV -->
@@ -577,7 +688,7 @@
 
             <div class="text-center mb-6">
                 <h3 class="text-gray-400 text-sm font-bold uppercase mb-2">Total a Pagar</h3>
-                <div id="modalAmount" class="text-4xl font-mono font-bold text-primary">$ 0.00</div>
+                <div id="modalAmount" class="text-5xl font-mono font-bold text-white">$ 0.00</div>
             </div>
 
             <div class="grid grid-cols-2 gap-3 mb-6">
@@ -608,7 +719,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDITAR -->
+    <!-- MODAL EDITAR TRANSACCION -->
     <div id="modalEdit"
         class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4">
         <div class="bg-card border border-secondary rounded-2xl p-6 w-full max-w-sm">
@@ -633,20 +744,25 @@
                     Cancelar
                 </button>
                 <button onclick="guardarEdicion()"
-                    class="py-3 bg-secondary hover:bg-emerald-600 text-dark font-black rounded-xl transition-all">
+                    class="py-3 bg-secondary hover:bg-indigo-600 text-white font-black rounded-xl transition-all">
                     Guardar
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL EDITAR PRODUCTO -->
+    <!-- MODAL EDITAR PRODUCTO (ACTUALIZADO) -->
     <div id="modalEditProducto"
-        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4">
-        <div class="bg-card border border-gold rounded-2xl p-6 w-full max-w-sm">
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-card border border-gold rounded-2xl p-6 w-full max-w-sm my-8">
             <h3 class="text-xl font-bold text-gold mb-6 text-center">Editar Producto</h3>
 
             <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1 font-bold">Código (No editable)</label>
+                    <input type="text" id="editInvCodigo" readonly
+                        class="w-full bg-dark border border-gray-700 rounded-lg px-3 py-2 text-gray-500 cursor-not-allowed">
+                </div>
                 <div>
                     <label class="block text-xs text-gray-400 mb-1 font-bold">Nombre del Producto</label>
                     <input type="text" id="editInvNombre"
@@ -657,20 +773,30 @@
                     <input type="text" id="editInvCategoria"
                         class="w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-gold">
                 </div>
+                
+                <!-- ✅ CAMBIO 3: AGREGADOS INPUTS DE COSTO Y GANANCIA PARA EDITAR -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 font-bold">Costo ($)</label>
+                        <input type="number" id="editInvCosto" step="0.01" min="0" oninput="calcularPrecio('editInv')"
+                            class="w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-gold">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 font-bold">Ganancia %</label>
+                        <input type="number" id="editInvGanancia" step="0.01" oninput="calcularPrecio('editInv')"
+                            class="w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-gold">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gold mb-1 font-bold">Precio Final ($)</label>
+                    <input type="number" id="editInvPrecio" step="0.01" min="0"
+                        class="w-full bg-dark border border-gold rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-gold">
+                </div>
                 <div>
                     <label class="block text-xs text-gray-400 mb-1 font-bold">Stock</label>
                     <input type="number" id="editInvStock"
                         class="w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-gold">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 font-bold">Precio ($)</label>
-                    <input type="number" id="editInvPrecio" step="0.01" min="0"
-                        class="w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-gold">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 font-bold text-gray-500">Código (No editable)</label>
-                    <input type="text" id="editInvCodigo" readonly
-                        class="w-full bg-dark border border-gray-700 rounded-lg px-3 py-2 text-gray-500 cursor-not-allowed">
                 </div>
             </div>
 
@@ -692,28 +818,28 @@
                     <i class="fa-solid fa-file-invoice text-3xl text-secondary"></i>
                 </div>
                 <h3 class="text-xl font-bold text-white">Solicitar Reporte</h3>
-                <p class="text-sm text-gray-400">Selecciona el periodo del reporte que deseas recibir.</p>
+                <p class="text-sm text-gray-400">Selecciona el periodo del reporte que deseas recibir por Correo.</p>
             </div>
             <div class="grid grid-cols-1 gap-3 mb-6">
                 <button onclick="enviarSolicitudReporte('hoy')"
-                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4">
+                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Reporte de Hoy</span>
-                    <i class="fa-solid fa-chevron-right text-xs opacity-30"></i>
+                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
                 <button onclick="enviarSolicitudReporte('semana')"
-                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4">
+                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Esta Semana</span>
-                    <i class="fa-solid fa-chevron-right text-xs opacity-30"></i>
+                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
                 <button onclick="enviarSolicitudReporte('mes')"
-                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4">
+                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Este Mes</span>
-                    <i class="fa-solid fa-chevron-right text-xs opacity-30"></i>
+                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
                 <button onclick="enviarSolicitudReporte('anio')"
-                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4">
+                    class="py-4 rounded-xl bg-dark border border-gray-700 hover:border-secondary text-gray-300 font-bold transition-all text-sm flex items-center justify-between px-4 group">
                     <span>Este Año</span>
-                    <i class="fa-solid fa-chevron-right text-xs opacity-30"></i>
+                    <i class="fa-solid fa-envelope text-xs opacity-30 group-hover:opacity-100 group-hover:text-secondary transition-all"></i>
                 </button>
             </div>
             <button onclick="cerrarModalReporte()"
@@ -732,32 +858,35 @@
 
     <script>
         const WEBHOOKS = {
-            CONSULTA: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/comerciante',
-            GUARDAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/pos-guardar-venta',
-            GUARDAR_BATCH: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/guardar-local',  // ✅ Para sincronización
-            HISTORIAL: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/historial',
-            EDITAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion-actualizar',
-            ELIMINAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/transaccion-eliminar',
-            INVENTARIO: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/inventario',
-            CONSULTA_INVENTARIO: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/consulta-inventario',
-            INVENTARIO_ACTUALIZAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/inventario-actualizar',
-            INVENTARIO_ELIMINAR: 'https://n8n-comerciantes-n8n.yqsgz7.easypanel.host/webhook/inventario-eliminar'
+            CONSULTA: 'https://n8n.arnaldoayalaestratega.com/webhook/comerciante',
+            GUARDAR: 'https://n8n.arnaldoayalaestratega.com/webhook/pos-guardar-venta',
+            GUARDAR_BATCH: 'https://n8n.arnaldoayalaestratega.com/webhook/guardar-local',  
+            HISTORIAL: 'https://n8n.arnaldoayalaestratega.com/webhook/historial',
+            EDITAR: 'https://n8n.arnaldoayalaestratega.com/webhook/transaccion-actualizar',
+            ELIMINAR: 'https://n8n.arnaldoayalaestratega.com/webhook/transaccion-eliminar',
+            INVENTARIO: 'https://n8n.arnaldoayalaestratega.com/webhook/inventario',
+            CONSULTA_INVENTARIO: 'https://n8n.arnaldoayalaestratega.com/webhook/consulta-inventario',
+            INVENTARIO_ACTUALIZAR: 'https://n8n.arnaldoayalaestratega.com/webhook/inventario-actualizar',
+            INVENTARIO_ELIMINAR: 'https://n8n.arnaldoayalaestratega.com/webhook/inventario-eliminar',
+            // ✅ AGREGADO WEBHOOK DE REPORTE POR EMAIL
+            REPORTE_EMAIL: 'https://n8n.arnaldoayalaestratega.com/webhook/generar-reporte' 
         };
 
         let comercianteData = { id: '', nombre: '' };
         let ventaActual = { items: [], total: 0 };
         let contadorProductos = 1;
         let transaccionesData = [];
-        let filtroActual = 'semana';
+        let filtroActual = 'mes'; // ✅ CAMBIO A MES POR DEFECTO PARA VER DATOS SIEMPRE
         let transaccionEditando = null;
         let inventario = [];
         let isOnline = navigator.onLine;
+        let selectedResultIndex = -1;
 
         // ✅ Sistema de Queue Offline
         const STORAGE_KEYS = {
             QUEUE_PENDIENTES: 'transacciones_pendientes',
-            INVENTARIO_CACHE: 'inventario_cache',  // ✅ Nuevo: caché de inventario
-            LAST_INVENTARIO_SYNC: 'last_inventario_sync'  // ✅ Timestamp de última sincronización
+            INVENTARIO_CACHE: 'inventario_cache',  
+            LAST_INVENTARIO_SYNC: 'last_inventario_sync'  
         };
 
         function guardarEnQueue(transaccion) {
@@ -777,26 +906,37 @@
         }
 
         // ✅ Funciones de caché de inventario
-        function guardarInventarioCache(productos) {
-            localStorage.setItem(STORAGE_KEYS.INVENTARIO_CACHE, JSON.stringify(productos));
-            localStorage.setItem(STORAGE_KEYS.LAST_INVENTARIO_SYNC, Date.now().toString());
-            console.log('💾 Inventario guardado en caché:', productos.length, 'productos');
+        function guardarInventarioCache(data) {
+            if (!comercianteData.id) return;
+            const cacheData = {
+                comercio_id: comercianteData.id,
+                timestamp: Date.now(),
+                productos: data
+            };
+            localStorage.setItem(STORAGE_KEYS.INVENTARIO_CACHE, JSON.stringify(cacheData));
         }
 
         function obtenerInventarioCache() {
             const cache = localStorage.getItem(STORAGE_KEYS.INVENTARIO_CACHE);
-            return cache ? JSON.parse(cache) : [];
+            if (!cache) return [];
+            try {
+                const parsed = JSON.parse(cache);
+                // Solo devolver si el cache pertenece al comerciante actual
+                if (parsed.comercio_id !== comercianteData.id) return [];
+                return parsed.productos || [];
+            } catch (e) { return []; }
         }
 
         function inventarioCacheValido() {
-            const lastSync = localStorage.getItem(STORAGE_KEYS.LAST_INVENTARIO_SYNC);
-            if (!lastSync) return false;
-
-            const ahora = Date.now();
-            const tiempoTranscurrido = ahora - parseInt(lastSync);
-            const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 horas
-
-            return tiempoTranscurrido < CACHE_DURATION;
+            const cache = localStorage.getItem(STORAGE_KEYS.INVENTARIO_CACHE);
+            if (!cache) return false;
+            try {
+                const parsed = JSON.parse(cache);
+                // Validar que sea del mismo comerciante y que no tenga más de 30 min
+                const esMismoComercio = parsed.comercio_id === comercianteData.id;
+                const esReciente = (Date.now() - parsed.timestamp) < (30 * 60 * 1000);
+                return esMismoComercio && esReciente;
+            } catch (e) { return false; }
         }
 
         async function sincronizarQueue() {
@@ -872,7 +1012,9 @@
 
             await cargarComercianteData(id);
             cargarVentaGuardada();
-            cargarInventario();
+            
+            // ✅ CARGA INICIAL ROBUSTA: PRIMERO CACHÉ, LUEGO RED
+            await cargarInventario(false); 
 
             // ✅ Sincronizar transacciones pendientes si hay internet
             if (isOnline) {
@@ -885,30 +1027,32 @@
         });
 
         async function cargarComercianteData(id) {
+            // ✅ FIX: Asignar ID inmediatamente para que esté disponible aunque falle la consulta del nombre
+            comercianteData.id = id;
+            updateUIFields('userId', id);
+            updateUIFields('sidebarUserId', id);
+            updateUIFields('headerUserId', id);
+
             try {
                 const response = await fetch(`${WEBHOOKS.CONSULTA}?id=${id}`);
                 const data = await response.json();
 
                 if (data.error) {
-                    mostrarNotificacion(`❌ ${data.message}`, 'error');
+                    // Si hay error, ya tenemos el ID, solo notificamos
+                    mostrarNotificacion(`⚠️ ${data.message || 'Error cargando nombre'}`, 'warning');
                     return;
                 }
 
-                comercianteData = {
-                    id: id,
-                    nombre: data.nombre || data.Nombre_Local || 'Comerciante'
-                };
+                comercianteData.nombre = data.nombre || data.Nombre_Local || 'Comerciante';
 
                 updateUIFields('userName', comercianteData.nombre);
-                updateUIFields('userId', comercianteData.id);
                 updateUIFields('sidebarUserName', comercianteData.nombre);
-                updateUIFields('sidebarUserId', comercianteData.id);
                 updateUIFields('headerUserName', comercianteData.nombre);
-                updateUIFields('headerUserId', comercianteData.id);
 
             } catch (error) {
                 console.error('Error:', error);
-                mostrarNotificacion('❌ Error al cargar datos', 'error');
+                // No bloqueamos, el ID ya está seteado
+                mostrarNotificacion('⚠️ Usando modo sin conexión (Nombre no cargado)', 'warning');
             }
         }
 
@@ -918,60 +1062,240 @@
         }
 
         function showMenuScreen() { hideAllScreens(); document.getElementById('menu-screen').classList.add('active'); }
-        function showVentasScreen() { hideAllScreens(); document.getElementById('ventas-screen').classList.add('active'); document.getElementById('montoInput').focus(); }
+        async function showVentasScreen() { 
+            hideAllScreens(); 
+            document.getElementById('ventas-screen').classList.add('active'); 
+            
+            // ✅ Asegurar inventario fresco si está vacío, pero sin bloquear la UI
+            if(inventario.length === 0) {
+                console.log('📦 Inventario vacío al abrir ventas, intentando cargar...');
+                await cargarInventario(false); // False = intenta caché primero
+            }
+            
+            document.getElementById('descripcionInput').focus(); 
+        } 
         function showGastosScreen() { hideAllScreens(); document.getElementById('gastos-screen').classList.add('active'); document.getElementById('montoGasto').focus(); }
         function showInventarioScreen() { hideAllScreens(); document.getElementById('inventario-screen').classList.add('active'); }
         async function showHistorialScreen() { hideAllScreens(); document.getElementById('historial-screen').classList.add('active'); await cargarHistorial(); }
         function hideAllScreens() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); }
 
-        async function cargarInventario() {
-            if (!comercianteData.id) return;
+        // ==========================================
+        //  NUEVA LÓGICA DE ESCÁNER Y PRECIOS
+        // ==========================================
 
-            const listEl = document.getElementById('listaInventario');
+        let html5QrcodeScanner = null;
 
-            // ✅ Si estamos offline, usar caché
-            if (!isOnline) {
-                console.log('📴 Modo offline - cargando inventario desde caché');
-                inventario = obtenerInventarioCache();
-                renderInventarioList();
-                if (inventario.length === 0) {
-                    listEl.innerHTML = '<div class="text-center py-8 text-yellow-500"><i class="fa-solid fa-wifi-slash text-3xl mb-2"></i><p>Sin conexión. No hay inventario en caché.</p></div>';
-                }
+        function toggleScanner(prefix) {
+            // 'prefix' puede ser 'inv' (crear) o 'ventas' (vender)
+            const readerId = `reader-${prefix}`;
+            const readerDiv = document.getElementById(readerId);
+            
+            // Si ya está abierto, lo cerramos
+            if (!readerDiv.classList.contains('hidden')) {
+                cerrarScanner(prefix);
                 return;
             }
 
-            // ✅ Si tenemos caché válido y estamos online, usar caché mientras actualizamos en background
-            if (inventarioCacheValido()) {
-                console.log('💾 Usando caché de inventario');
-                inventario = obtenerInventarioCache();
-                renderInventarioList();
-            } else {
-                listEl.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i><p>Actualizando...</p></div>';
+            // Abrimos el escáner
+            readerDiv.classList.remove('hidden');
+            
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode(readerId);
             }
 
-            // ✅ Actualizar desde servidor
-            try {
-                const response = await fetch(`${WEBHOOKS.CONSULTA_INVENTARIO}?id_comerciante=${comercianteData.id}`);
-                const data = await response.json();
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            // Preferimos la cámara trasera ('environment')
+            html5QrcodeScanner.start({ facingMode: "environment" }, config, (decodedText) => {
+                onScanSuccess(decodedText, prefix);
+            })
+            .catch(err => {
+                console.error("Error al iniciar cámara", err);
+                alert("No se pudo iniciar la cámara. Asegúrate de dar permisos.");
+            });
+        }
 
-                inventario = Array.isArray(data) ? data : (data.productos || []);
+        // ✅ FUNCIÓN DE BÚSQUEDA ROBUSTA (Reemplazar la anterior)
+        function verificarExistencia(codigoRaw) {
+            if (!codigoRaw) return;
 
-                // ✅ Guardar en caché
-                guardarInventarioCache(inventario);
+            // 1. Convertimos lo escaneado a Texto Puro, Mayúsculas y sin espacios
+            const codigoBuscado = String(codigoRaw).trim().toUpperCase();
+            
+            console.log("--------------------------------");
+            console.log("🔍 Escaneado:", codigoBuscado);
+            
+            // Debug: Ver si el inventario tiene datos cargados
+            if (!inventario || inventario.length === 0) {
+                console.warn("⚠️ El inventario en memoria está vacío. Revisa la carga inicial.");
+                mostrarNotificacion('⚠️ Inventario vacío o cargando...', 'warning');
+                return;
+            }
 
-                renderInventarioList();
-            } catch (e) {
-                console.error('❌ Error loading inventory:', e);
+            // 2. Búsqueda profunda comparando Texto contra Texto
+            const productoExistente = inventario.find(p => {
+                // Armamos una lista de todos los posibles códigos que tenga ese producto
+                const codigosProducto = [
+                    p.id,
+                    p.codigo,
+                    p.codigo_barra,
+                    p.Codigo,       // Por si viene con mayúscula de la base de datos
+                    p.barcode       // Por si acaso
+                ];
 
-                // Si falla, intentar usar caché antiguo
-                const cacheViejo = obtenerInventarioCache();
-                if (cacheViejo.length > 0) {
-                    inventario = cacheViejo;
-                    renderInventarioList();
-                    mostrarNotificacion('⚠️ Usando inventario en caché', 'warning');
-                } else {
-                    listEl.innerHTML = '<div class="text-center py-8 text-red-500"><p>Error al cargar inventario</p></div>';
+                // Verificamos si alguno coincide
+                return codigosProducto.some(valor => {
+                    if (valor === null || valor === undefined) return false;
+                    return String(valor).trim().toUpperCase() === codigoBuscado;
+                });
+            });
+
+            if (productoExistente) {
+                console.log("✅ ENCONTRADO:", productoExistente.nombre);
+                mostrarNotificacion(`📦 Encontrado: ${productoExistente.nombre}`, 'success');
+                
+                // Limpiamos campo y quitamos foco para evitar doble lectura
+                const inputCodigo = document.getElementById('invCodigo');
+                if(inputCodigo) {
+                    inputCodigo.value = ''; 
+                    inputCodigo.blur(); 
                 }
+
+                // Abrimos el modal de edición
+                // Usamos el ID real para asegurar que la edición funcione
+                editarProducto(productoExistente.id, codigoBuscado);
+                
+            } else {
+                console.log("❌ NO ENCONTRADO en una lista de " + inventario.length + " productos.");
+                // Si no existe, avisamos visualmente y pasamos al nombre
+                mostrarNotificacion('✨ Producto Nuevo', 'warning');
+                document.getElementById('invNombre').focus();
+            }
+        }
+
+        function onScanSuccess(decodedText, prefix) {
+            // 1. Efecto visual y feedback inmediato
+            // Para inventario usamos 'invCodigo', para ventas 'descripcionInput'
+            const inputId = prefix === 'inv' ? 'invCodigo' : 'descripcionInput';
+            const inputCodigo = document.getElementById(inputId);
+            
+            if(inputCodigo) {
+                inputCodigo.value = decodedText;
+                inputCodigo.classList.add('bg-green-500/20', 'border-green-500');
+                setTimeout(() => {
+                    inputCodigo.classList.remove('bg-green-500/20', 'border-green-500');
+                }, 1000);
+            }
+            
+            // Cerrar el escáner automáticamente tras leer
+            cerrarScanner(prefix);
+
+            // 2. LÓGICA INTELIGENTE SEGÚN LA PANTALLA
+            if (prefix === 'inv') { 
+                verificarExistencia(decodedText);
+            } else if (prefix === 'ventas') {
+                // Si estamos en ventas, intentamos agregar el producto directo
+                handleVentasEnter(decodedText);
+            }
+        }
+
+        function cerrarScanner(prefix) {
+            const readerDiv = document.getElementById(`reader-${prefix}`);
+            if(readerDiv) readerDiv.classList.add('hidden');
+            
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    console.log("Escáner detenido");
+                    html5QrcodeScanner.clear(); // Limpia el elemento
+                    html5QrcodeScanner = null;  // Resetea la instancia para poder reabrir
+                }).catch(err => console.error(err));
+            }
+        }
+
+        function calcularPrecio(prefix) {
+            const costo = parseFloat(document.getElementById(`${prefix}Costo`).value) || 0;
+            const ganancia = parseFloat(document.getElementById(`${prefix}Ganancia`).value) || 0;
+            
+            if (costo > 0) {
+                const precioFinal = costo * (1 + (ganancia / 100));
+                document.getElementById(`${prefix}Precio`).value = precioFinal.toFixed(2);
+            }
+        }
+
+
+        // ==========================================
+        //  FIN LÓGICA DE ESCÁNER Y PRECIOS
+        // ==========================================
+
+        async function cargarInventario(force = false) {
+            if (!comercianteData.id) return;
+
+            const listEl = document.getElementById('listaInventario');
+            
+            // ✅ ESTRATEGIA LOCAL-FIRST (PRIMERO LOCAL)
+            // 1. Intentar cargar del caché local INMEDIATAMENTE
+            const cache = obtenerInventarioCache();
+            if (cache.length > 0) {
+                console.log('⚡ Carga rápida desde caché local:', cache.length, 'productos');
+                inventario = cache; // Cargamos en RAM
+                renderInventarioList(); // Mostramos en pantalla
+                if(!force && isOnline) {
+                    mostrarNotificacion('📦 Inventario cargado (Local)', 'success');
+                }
+            } else {
+                if(!isOnline) {
+                    listEl.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i><p>Sin conexión y sin caché local.</p></div>';
+                    return;
+                }
+            }
+
+            // 2. Si forzamos la recarga O no tenemos caché, vamos a la red
+            // O si tenemos red, actualizamos en segundo plano silenciosamente
+            if (force || (isOnline && cache.length === 0)) {
+                if (force) {
+                    listEl.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i><p>Actualizando lista...</p></div>';
+                    localStorage.removeItem(STORAGE_KEYS.INVENTARIO_CACHE);
+                }
+                
+                try {
+                    console.log('🌐 Conectando con servidor para actualizar inventario...');
+                    const response = await fetch(`${WEBHOOKS.CONSULTA_INVENTARIO}?id_comerciante=${comercianteData.id}`);
+                    const data = await response.json();
+    
+                    inventario = Array.isArray(data) ? data : (data.productos || []);
+    
+                    // ✅ Actualizamos el caché con lo nuevo
+                    console.log('✅ Inventario actualizado desde servidor:', inventario.length);
+                    guardarInventarioCache(inventario);
+    
+                    renderInventarioList();
+                    if(force) mostrarNotificacion('✅ Inventario actualizado', 'success');
+                    
+                } catch (e) {
+                    console.error('❌ Error loading inventory from network:', e);
+                    if (force) {
+                          // Si falló la carga forzada y no había caché...
+                          listEl.innerHTML = '<div class="text-center py-8 text-red-400"><i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i><p>Error de conexión</p></div>';
+                    }
+                }
+            } else if (isOnline && cache.length > 0) {
+                // 3. ACTUALIZACIÓN SILENCIOSA EN BACKGROUND
+                // Ya mostramos el caché, pero vamos a pedir datos nuevos por si acaso cambiaron precios
+                console.log('🔄 Actualizando inventario en segundo plano...');
+                fetch(`${WEBHOOKS.CONSULTA_INVENTARIO}?id_comerciante=${comercianteData.id}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const nuevosDatos = Array.isArray(data) ? data : (data.productos || []);
+                        if (JSON.stringify(nuevosDatos) !== JSON.stringify(cache)) {
+                            console.log('✨ Detectados cambios en el inventario, actualizando...');
+                            inventario = nuevosDatos;
+                            guardarInventarioCache(inventario);
+                            renderInventarioList(); // Refrescamos la lista si estamos en esa pantalla
+                        } else {
+                            console.log('👍 Inventario local ya estaba actualizado.');
+                        }
+                    })
+                    .catch(err => console.log('⚠️ No se pudo actualizar en background (no es crítico)', err));
             }
         }
 
@@ -980,6 +1304,11 @@
             const precio = parseFloat(document.getElementById('invPrecio').value);
             const stock = parseInt(document.getElementById('invStock').value) || 0;
             const categoria = document.getElementById('invCategoria').value.trim();
+            
+            // Nuevos Campos
+            const codigo = document.getElementById('invCodigo').value.trim();
+            const costo = parseFloat(document.getElementById('invCosto').value) || 0;
+            const ganancia = parseFloat(document.getElementById('invGanancia').value) || 0;
 
             if (!nombre || !precio) { mostrarNotificacion('⚠️ Nombre y Precio requeridos', 'error'); return; }
 
@@ -988,13 +1317,23 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
             btn.disabled = true;
 
-            const payload = {
-                id_comerciante: comercianteData.id,
-                nombre: nombre,
-                precio: precio,
-                stock: stock,
-                categoria: categoria
-            };
+            const idLocal = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+// ✅ ESTAS LÍNEAS VAN AQUÍ (FUERA DEL PAYLOAD)
+const ahora = new Date();
+const fechaHoraLocal = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000))
+    .toISOString()
+    .replace('Z', '-03:00');
+
+const payload = {
+    id_comerciante: comercianteData.id,
+    tipo: 'GASTO',
+    monto: monto,
+    categoria: cat,
+    descripcion: desc || `Gasto: ${cat}`,
+    fecha_hora: fechaHoraLocal,  // ✅ Y AQUÍ SOLO USAR LA VARIABLE
+    id_local: idLocal
+};
 
             // ✅ Si estamos offline, guardar en caché local
             if (!isOnline) {
@@ -1002,9 +1341,11 @@
                     id: `temp_${Date.now()}`,
                     nombre: nombre,
                     precio: precio,
-                    stock_actual: stock,
+                    stock: stock,
                     categoria: categoria,
-                    codigo: 'PENDIENTE'
+                    codigo: codigo || 'PENDIENTE',
+                    precio_costo: costo,
+                    ganancia_porcentaje: ganancia
                 };
 
                 inventario.push(nuevoProducto);
@@ -1013,10 +1354,8 @@
 
                 mostrarNotificacion('📴 Producto guardado offline', 'warning');
 
-                document.getElementById('invNombre').value = '';
-                document.getElementById('invPrecio').value = '';
-                document.getElementById('invStock').value = '';
-                document.getElementById('invCategoria').value = '';
+                // Limpiar campos
+                limpiarCamposInventario();
 
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -1033,12 +1372,9 @@
                 if (!response.ok) throw new Error('Error en el servidor');
 
                 mostrarNotificacion('✅ Producto guardado', 'success');
-                document.getElementById('invNombre').value = '';
-                document.getElementById('invPrecio').value = '';
-                document.getElementById('invStock').value = '';
-                document.getElementById('invCategoria').value = '';
+                limpiarCamposInventario();
 
-                await cargarInventario();
+                await cargarInventario(true); // Forzar recarga para asegurar IDs correctos del server
             } catch (e) {
                 console.error('❌ Error saving product:', e);
                 mostrarNotificacion('❌ Error al guardar. Se guardará offline.', 'error');
@@ -1049,43 +1385,77 @@
             }
         }
 
+        function limpiarCamposInventario() {
+            document.getElementById('invNombre').value = '';
+            document.getElementById('invPrecio').value = '';
+            document.getElementById('invStock').value = '';
+            document.getElementById('invCategoria').value = '';
+            document.getElementById('invCodigo').value = '';
+            document.getElementById('invCosto').value = '';
+            document.getElementById('invGanancia').value = '';
+            // Cerrar scanner si quedó abierto
+            cerrarScanner('inv');
+        }
+
         function renderInventarioList() {
             const listEl = document.getElementById('listaInventario');
             if (inventario.length === 0) {
-                listEl.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">No hay productos registrados</td></tr>';
+                listEl.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500"><i class="fa-solid fa-box-open text-3xl mb-2 block"></i>Inventario Vacío en la base de datos</td></tr>';
                 return;
             }
-            listEl.innerHTML = inventario.map(p => `
+            listEl.innerHTML = inventario.map(p => {
+                // Probamos todas las combinaciones posibles que n8n/supabase podrían devolver
+                const stock = (p.stock != null) ? p.stock : (p.stock_actual != null ? p.stock_actual : 0);
+                const categoria = p.categoria || p.Categoria || p.category || '-';
+                
+                // Manejo de precio: usamos precio_final si existe, sino precio
+                const precioMostrar = p.precio_final || p.precio || 0;
+                
+                // ✅ CAMBIO 2: LEER Y MOSTRAR COSTO
+                const costoMostrar = p.precio_costo || 0;
+
+                // Manejo de código: puede venir como codigo o codigo_barra
+                const codigoMostrar = p.codigo_barra || p.codigo || 'SIN CODIGO';
+
+                return `
                 <tr class="hover:bg-white/5 transition-colors">
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-3" data-label="Producto">
                         <div class="font-bold text-white">${p.nombre}</div>
-                        <div class="text-[10px] text-gray-500 font-mono">${p.codigo || 'SIN CODIGO'}</div>
+                        <div class="text-[10px] text-gray-400 font-mono flex items-center gap-1">
+                            <i class="fa-solid fa-barcode"></i> ${codigoMostrar}
+                        </div>
                     </td>
-                    <td class="px-4 py-3 text-gray-400 text-xs">${p.categoria || '-'}</td>
-                    <td class="px-4 py-3 font-mono font-bold text-white text-center">$ ${parseFloat(p.precio).toFixed(2)}</td>
-                    <td class="px-4 py-3 font-bold text-center ${p.stock_actual <= 5 ? 'text-red-400' : 'text-primary'}">
-                        ${p.stock_actual || 0}
+                    <td class="px-4 py-3 text-gray-400 text-xs" data-label="Categoría">${categoria}</td>
+                    
+                    <!-- ✅ COLUMNA COSTO EN LA TABLA -->
+                    <td class="px-4 py-3 font-mono text-gray-400 text-center" data-label="Costo">$ ${parseFloat(costoMostrar).toFixed(2)}</td>
+
+                    <td class="px-4 py-3 font-mono font-bold text-white text-center" data-label="Precio">$ ${parseFloat(precioMostrar).toFixed(2)}</td>
+                    <td class="px-4 py-3 font-bold text-center ${stock <= 5 ? 'text-red-400' : 'text-primary'}" data-label="Stock">
+                        ${stock}
                     </td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex gap-2 justify-end">
-                            <button onclick="editarProducto('${p.id}')" 
-                                class="text-gold hover:text-white transition-colors">
-                                <i class="fa-solid fa-pen"></i>
+                            <button onclick="editarProducto('${p.id}', '${codigoMostrar}')" 
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/10 text-gold border border-gold/20 hover:bg-gold hover:text-dark text-xs font-bold uppercase transition-all">
+                                <i class="fa-solid fa-pen"></i> Editar
                             </button>
-                            <button onclick="eliminarProducto('${p.id}')" 
-                                class="text-red-500 hover:text-white transition-colors">
-                                <i class="fa-solid fa-trash"></i>
+                            <button onclick="eliminarProducto('${p.id}', '${codigoMostrar}')" 
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white text-xs font-bold uppercase transition-all">
+                                <i class="fa-solid fa-trash"></i> Eliminar
                             </button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
         }
 
         // ✅ Buscar productos (funciona offline con caché)
         function buscarProductos(query) {
             const resultsEl = document.getElementById('productosResultados');
             const btnClear = document.getElementById('btnClearSearch');
+            selectedResultIndex = -1; // Reset selection
 
             if (!query) {
                 resultsEl.classList.add('hidden');
@@ -1096,25 +1466,56 @@
             btnClear.classList.remove('hidden');
 
             // ✅ Buscar en el inventario (ya sea de caché o actualizado)
-            const filtered = inventario.filter(p =>
-                p.nombre.toLowerCase().includes(query.toLowerCase()) ||
-                (p.codigo && p.codigo.includes(query))
-            );
+            const filtered = inventario.filter(p => {
+                const q = String(query).toLowerCase().trim();
+                const nombre = (p.nombre || '').toLowerCase();
+                
+                // ✅ BUSQUEDA ROBUSTA: Agregamos todos los posibles campos de código
+                // Esto asegura que encuentre por codigo, codigo_barra, barcode, id, etc.
+                const codigos = [
+                    p.codigo, 
+                    p.codigo_barra, 
+                    p.Codigo, 
+                    p.barcode, 
+                    p.id
+                ].map(c => String(c || '').toLowerCase());
+
+                // Chequeamos si el nombre incluye la query O si alguno de los códigos la incluye
+                return nombre.includes(q) || codigos.some(c => c.includes(q));
+            });
 
             if (filtered.length === 0) {
                 resultsEl.innerHTML = '<div class="p-3 text-gray-500 text-sm text-center">No encontrado. <br><span class="text-xs">Presiona Enter para usar texto libre.</span></div>';
             } else {
-                resultsEl.innerHTML = filtered.map(p => `
-                    <div onclick="seleccionarProducto('${p.nombre}', ${p.precio})" class="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700/50 last:border-0">
+                resultsEl.innerHTML = filtered.map((p, index) => {
+                    const precio = p.precio_final || p.precio || 0;
+                    const cod = p.codigo_barra || p.codigo || '';
+                    return `
+                    <div onclick="seleccionarProducto('${p.nombre}', ${precio})" 
+                         class="search-result-item p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700/50 last:border-0"
+                         data-index="${index}"
+                         data-nombre="${p.nombre}"
+                         data-precio="${precio}">
                         <div class="font-bold text-white text-sm">${p.nombre}</div>
                         <div class="flex justify-between text-xs text-gray-400">
-                            <span>${p.codigo || ''}</span>
-                            <span class="text-primary font-mono">$ ${p.precio}</span>
+                            <span>${cod}</span>
+                            <span class="text-primary font-mono">$ ${parseFloat(precio).toFixed(2)}</span>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             }
             resultsEl.classList.remove('hidden');
+        }
+
+        function highlightResult(index) {
+            const items = document.querySelectorAll('.search-result-item');
+            items.forEach(item => item.classList.remove('selected'));
+
+            if (index >= 0 && index < items.length) {
+                const selectedItem = items[index];
+                selectedItem.classList.add('selected');
+                selectedItem.scrollIntoView({ block: 'nearest' });
+            }
         }
 
         function seleccionarProducto(nombre, precio) {
@@ -1132,6 +1533,94 @@
             document.getElementById('btnClearSearch').classList.add('hidden');
         }
 
+        // ✅ NUEVA LÓGICA: Procesar ENTER en el buscador de Ventas
+        function handleVentasEnter(query) {
+            if (!query) return;
+
+            // 1. Buscamos coincidencia EXACTA por código de barra (más eficiente para scanner)
+            const codigoBuscado = String(query).trim().toUpperCase();
+            
+            // ✅ Búsqueda 100% LOCAL en la variable 'inventario' (que ya está cargada desde caché o red)
+            const productoEncontrado = inventario.find(p => {
+                const codigosProducto = [p.id, p.codigo, p.codigo_barra, p.Codigo, p.barcode];
+                // ✅ Forzamos String() en cada valor para asegurar coincidencia aunque sea número
+                return codigosProducto.some(valor => String(valor).trim().toUpperCase() === codigoBuscado);
+            });
+
+            if (productoEncontrado) {
+                // ✅ ENCONTRADO POR CÓDIGO: Agregar directo al carrito
+                const precio = parseFloat(productoEncontrado.precio_final || productoEncontrado.precio || 0);
+                const nombre = productoEncontrado.nombre;
+
+                // Agregar item
+                ventaActual.items.push({ monto: precio, descripcion: nombre });
+                ventaActual.total += precio;
+                
+                // Actualizar UI
+                actualizarDisplayTotal();
+                actualizarListaItems();
+                guardarVentaTemporal();
+                
+                // Feedback
+                mostrarNotificacion(`🛒 Agregado: ${nombre}`, 'success');
+                
+                // Limpiar y RE-ENFOCAR buscador (para seguir escaneando)
+                const inputDesc = document.getElementById('descripcionInput');
+                const inputMonto = document.getElementById('montoInput');
+                inputDesc.value = '';
+                inputMonto.value = '';
+                inputDesc.focus();
+                limpiarBuscador();
+
+            } else {
+                // ❌ NO ENCONTRADO POR CÓDIGO EXACTO: ¿Es un nombre exacto o muy parecido?
+                // El usuario pidió que busque "por nombre" al dar Enter también.
+                // Intentamos buscar coincidencia exacta o usar el primer resultado de la búsqueda en vivo.
+
+                // Opción A: Buscar coincidencia exacta de nombre (case insensitive)
+                const productoPorNombre = inventario.find(p => p.nombre.toUpperCase() === codigoBuscado);
+
+                if (productoPorNombre) {
+                    const precio = parseFloat(productoPorNombre.precio_final || productoPorNombre.precio || 0);
+                    const nombre = productoPorNombre.nombre;
+                    
+                    ventaActual.items.push({ monto: precio, descripcion: nombre });
+                    ventaActual.total += precio;
+                    actualizarDisplayTotal();
+                    actualizarListaItems();
+                    guardarVentaTemporal();
+                    
+                    mostrarNotificacion(`🛒 Agregado: ${nombre}`, 'success');
+                    
+                    const inputDesc = document.getElementById('descripcionInput');
+                    const inputMonto = document.getElementById('montoInput');
+                    inputDesc.value = '';
+                    inputMonto.value = '';
+                    inputDesc.focus();
+                    limpiarBuscador();
+                    return;
+                }
+
+                // Opción B: Si no es código ni nombre exacto...
+                // Si hay resultados visibles en la lista (filtrados previamente), ¿seleccionamos el primero?
+                // Esto podría ser peligroso si el filtro es muy amplio (ej: "A").
+                // Mejor comportamiento: Enfocar monto para carga manual si no se encuentra nada claro.
+                
+                const inputMonto = document.getElementById('montoInput');
+                const items = document.querySelectorAll('.search-result-item');
+                
+                if (selectedResultIndex >= 0 && items[selectedResultIndex]) {
+                     // Si el usuario seleccionó con flechas
+                     const item = items[selectedResultIndex];
+                     seleccionarProducto(item.dataset.nombre, item.dataset.precio);
+                } else {
+                     // No hay resultados claros, quizás es un precio directo o producto nuevo no registrado
+                     mostrarNotificacion('⚠️ Producto no encontrado. Ingresa monto manual.', 'warning');
+                     inputMonto.focus();
+                }
+            }
+        }
+
         function agregarItem() {
             const inputMonto = document.getElementById('montoInput');
             const inputDesc = document.getElementById('descripcionInput');
@@ -1139,9 +1628,10 @@
 
             if (!monto || monto <= 0) { mostrarNotificacion('⚠️ Ingresa monto válido', 'error'); return; }
 
-            const descripcion = inputDesc.value.trim() || `Producto ${contadorProductos}`;
+            const descripcion = inputDesc.value.trim() || `Producto ${contadorProductos}`; // Corregido para usar contador
             ventaActual.items.push({ monto: monto, descripcion: descripcion });
-            contadorProductos++;
+            // contadorProductos++; // No usamos contador global incremental para nombre genérico, mejor 'Item'
+            
             ventaActual.total += monto;
 
             actualizarDisplayTotal();
@@ -1150,7 +1640,10 @@
 
             inputMonto.value = '';
             inputDesc.value = '';
-            inputMonto.focus();
+            
+            // ✅ CAMBIO CLAVE: VOLVER EL FOCO AL BUSCADOR
+            inputDesc.focus(); 
+            limpiarBuscador();
         }
 
         function actualizarDisplayTotal() {
@@ -1232,8 +1725,25 @@
             if (btnMob) btnMob.disabled = true;
 
             const ahora = new Date();
-            const fechaHoraLocal = ahora.toISOString();
+            const fechaHoraLocal = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000))
+    .toISOString()
+    .replace('Z', '-03:00');
             const idLocal = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // ✅ PREPARAR ITEMS PARA ENVIAR (INCLUYENDO COSTO)
+            // Necesitamos buscar el costo original del producto en el inventario si existe
+            const itemsConCosto = ventaActual.items.map(item => {
+                // Buscamos si este item tiene un producto asociado en el inventario por nombre
+                // Nota: Esto es una aproximación, idealmente guardaríamos el ID del producto al agregar
+                const producto = inventario.find(p => p.nombre === item.descripcion);
+                const costoUnitario = producto ? (parseFloat(producto.precio_costo) || 0) : 0;
+                
+                return {
+                    descripcion: item.descripcion,
+                    monto: item.monto,
+                    costo: costoUnitario // Enviamos el costo unitario
+                };
+            });
 
             const payload = {
                 id_comerciante: comercianteData.id,
@@ -1241,7 +1751,7 @@
                 monto: ventaActual.total,
                 metodo: metodoPago,
                 descripcion: ventaActual.items.map((item, i) => `${i + 1}. ${item.descripcion}: $${item.monto.toFixed(2)}`).join(', '),
-                items: ventaActual.items,
+                items: itemsConCosto, // Enviamos items enriquecidos
                 fecha_hora: fechaHoraLocal,
                 id_local: idLocal
             };
@@ -1304,13 +1814,19 @@
             // ✅ Generar ID local único para evitar duplicados
             const idLocal = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+            // ✅ CORREGIDO: Crear fecha en zona horaria Argentina (UTC-3)
+            const ahora = new Date();
+            const fechaHoraLocal = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000))
+                .toISOString()
+                .replace('Z', '-03:00');
+
             const payload = {
                 id_comerciante: comercianteData.id,
                 tipo: 'GASTO',
                 monto: monto,
                 categoria: cat,
                 descripcion: desc || `Gasto: ${cat}`,
-                fecha_hora: new Date().toISOString(),
+                fecha_hora: fechaHoraLocal,
                 id_local: idLocal
             };
 
@@ -1361,13 +1877,41 @@
             container.innerHTML = '<div class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i><p>Cargando datos...</p></div>';
 
             try {
+                // ✅ SE CORRIGIÓ LA LÓGICA DE FECHAS EN 'obtenerRangoFechas' (Ver abajo)
                 const { fechaDesde, fechaHasta } = obtenerRangoFechas(filtroActual);
-                const url = `${WEBHOOKS.HISTORIAL}?comercio_id=${comercianteData.id}&fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`;
+                
+                // ✅ FIX: Agregar timestamp para evitar caché del navegador al cambiar de dispositivo
+                // ✅ FIX: Asegurar que el ID del comerciante se envíe correctamente en la URL
+                const url = `${WEBHOOKS.HISTORIAL}?comercio_id=${comercianteData.id}&fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}&_t=${Date.now()}`;
+                
+                console.log('📅 Solicitando historial para:', comercianteData.id);
+                console.log('📅 Fechas:', fechaDesde, 'a', fechaHasta);
+                
                 const response = await fetch(url);
                 const data = await response.json();
 
-                transaccionesData = data.transacciones || data || [];
-                renderHistorial(transaccionesData);
+                // ✅ FIX ROBUSTEZ: Búsqueda "chismosa" de los datos
+                // Buscamos el array de transacciones donde sea que se esconda
+                let result = [];
+                if (Array.isArray(data)) {
+                    result = data;
+                } else if (data.transacciones && Array.isArray(data.transacciones)) {
+                    result = data.transacciones;
+                } else if (data.data && Array.isArray(data.data)) { // Estructura común de n8n
+                    result = data.data;
+                } else if (data.result && Array.isArray(data.result)) { // Otra estructura común
+                    result = data.result;
+                } else if (data.json && Array.isArray(data.json)) { // Otra variante
+                    result = data.json;
+                }
+
+                console.log("Datos recibidos crudos:", data);
+                console.log("Datos procesados como array:", result);
+
+                transaccionesData = result;
+                
+                // Pasar las fechas para mostrarlas en la UI si está vacío
+                renderHistorial(transaccionesData, fechaDesde, fechaHasta);
             } catch (error) {
                 console.error('Error Historial:', error);
                 container.innerHTML = '<div class="text-center text-red-500 py-10">Error al cargar historial</div>';
@@ -1387,24 +1931,37 @@
             cargarHistorial();
         }
 
+        // ✅ LÓGICA DE FECHAS CORREGIDA (FIX PARA ARGENTINA/LATAM)
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function obtenerRangoFechas(filtro) {
             const ahora = new Date();
-            let fechaDesde = new Date();
+            let desde = new Date();
+            
+            // Resetear horas para comparaciones limpias
+            desde.setHours(0, 0, 0, 0);
 
-            if (filtro === 'hoy' || filtro === 'dia') {
-                fechaDesde.setHours(0, 0, 0, 0);
-            } else if (filtro === 'semana') {
-                fechaDesde.setDate(ahora.getDate() - 7);
+            if (filtro === 'semana') {
+                const day = ahora.getDay(); 
+                // Ajustar al domingo (0) o lunes según preferencia, aquí restamos días desde hoy
+                const diff = ahora.getDate() - day; 
+                desde.setDate(diff);
             } else if (filtro === 'mes') {
-                fechaDesde.setDate(1);
-                fechaDesde.setHours(0, 0, 0, 0);
-            } else if (filtro === 'año' || filtro === 'este_año') {
-                fechaDesde.setMonth(0, 1);
-                fechaDesde.setHours(0, 0, 0, 0);
+                desde.setDate(1);
+            } else if (filtro === 'año') {
+                desde.setMonth(0, 1);
             }
+            // Si es 'hoy', ya está en 00:00:00
 
-            const format = (d) => d.toISOString().split('T')[0];
-            return { fechaDesde: format(fechaDesde), fechaHasta: format(ahora) };
+            return { 
+                fechaDesde: formatDate(desde), 
+                fechaHasta: formatDate(ahora) 
+            };
         }
 
         function safeDate(dateStr) {
@@ -1414,21 +1971,48 @@
             return dateStr.substring(0, 16).replace('T', ' ');
         }
 
-        function renderHistorial(datos) {
+        function renderHistorial(datos, fDesde, fHasta) {
             const container = document.getElementById('transactionsContainer');
             let ingresos = 0, gastos = 0;
 
             datos.forEach(t => {
-                if (t.tipo === 'INGRESO') ingresos += parseFloat(t.monto);
-                if (t.tipo === 'GASTO') gastos += parseFloat(t.monto);
+                // ✅ FIX: Hacer comparación insensible a mayúsculas/minúsculas
+                const tipo = (t.tipo || '').toUpperCase();
+                // Asegurar que monto sea número aunque venga como string
+                const monto = parseFloat(t.monto) || 0;
+                
+                if (tipo === 'INGRESO') ingresos += monto;
+                if (tipo === 'GASTO') gastos += monto;
             });
 
+            // ✅ RESUMEN EN PANTALLA ACTUALIZADO (HOY/SEMANA/MES)
             document.getElementById('totalIngresos').textContent = `$ ${ingresos.toFixed(2)}`;
             document.getElementById('totalGastos').textContent = `$ ${gastos.toFixed(2)}`;
-            document.getElementById('balanceTotal').textContent = `$ ${(ingresos - gastos).toFixed(2)}`;
+            const balance = ingresos - gastos;
+            const balanceEl = document.getElementById('balanceTotal');
+            balanceEl.textContent = `$ ${balance.toFixed(2)}`;
+            
+            // Color dinámico para el balance
+            if(balance >= 0) {
+                balanceEl.classList.remove('text-red-500');
+                balanceEl.classList.add('text-white');
+            } else {
+                balanceEl.classList.add('text-red-500');
+                balanceEl.classList.remove('text-white');
+            }
 
             if (datos.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 py-8">No hay movimientos en este periodo</p>';
+                // ✅ Feedback visual de qué se consultó
+                let rangoMsg = '';
+                if(fDesde && fHasta) {
+                    rangoMsg = `<br><span class="text-xs text-gray-600 mt-2 block">Consulta: ${fDesde} al ${fHasta}</span>`;
+                }
+                
+                container.innerHTML = `<div class="text-center py-8 text-gray-500">
+                    <p>No hay movimientos en este periodo</p>
+                    ${rangoMsg}
+                    <button onclick="cambiarFiltro('año')" class="mt-4 text-xs text-primary underline">Ver todo el año</button>
+                </div>`;
                 return;
             }
 
@@ -1536,16 +2120,33 @@
 
         let productoEditando = null;
 
-        function editarProducto(id) {
-            const prod = inventario.find(p => p.id === id);
-            if (!prod) return;
+        // ✅ 4. Función Editar Producto: Cargar Costo
+        function editarProducto(id, codigo) {
+            const prod = inventario.find(p => p.id == id || p.codigo == id || p.codigo == codigo);
+            if (!prod) {
+                console.error("❌ No se encontró el producto en el inventario local:", id, codigo);
+                return;
+            }
 
-            productoEditando = id;
+            // ✅ CORREGIDO: Priorizar siempre el código de barras si existe, sino el ID
+            productoEditando = prod.codigo || prod.codigo_barra || prod.id;
+            console.log("📝 Editando producto (ID/Código):", productoEditando, prod);
+
             document.getElementById('editInvNombre').value = prod.nombre;
-            document.getElementById('editInvCategoria').value = prod.categoria || '';
-            document.getElementById('editInvPrecio').value = prod.precio;
-            document.getElementById('editInvStock').value = prod.stock_actual || 0;
-            document.getElementById('editInvCodigo').value = prod.codigo || 'SE GENERA AL GUARDAR';
+            document.getElementById('editInvCategoria').value = prod.categoria || prod.Categoria || '';
+            
+            // Usamos precio_final si existe (n8n standard), sino precio
+            document.getElementById('editInvPrecio').value = prod.precio_final || prod.precio;
+            
+            // Stock
+            document.getElementById('editInvStock').value = (prod.stock != null) ? prod.stock : (prod.stock_actual != null ? prod.stock_actual : 0);
+            
+            // Código (mostramos el que se usará para actualizar)
+            document.getElementById('editInvCodigo').value = productoEditando;
+
+            // ✅ CARGAR COSTO Y GANANCIA
+            document.getElementById('editInvCosto').value = prod.precio_costo || 0;
+            document.getElementById('editInvGanancia').value = prod.ganancia_porcentaje || 0;
 
             document.getElementById('modalEditProducto').classList.remove('hidden');
             document.getElementById('modalEditProducto').classList.add('flex');
@@ -1557,6 +2158,7 @@
             productoEditando = null;
         }
 
+        // ✅ 5. Función Guardar Edición: Enviar Costo
         async function guardarEdicionProducto() {
             if (!productoEditando) return;
 
@@ -1564,29 +2166,43 @@
             const categoria = document.getElementById('editInvCategoria').value.trim();
             const precio = parseFloat(document.getElementById('editInvPrecio').value);
             const stock = parseInt(document.getElementById('editInvStock').value) || 0;
+            
+            // ✅ LEER COSTO Y GANANCIA
+            const costo = parseFloat(document.getElementById('editInvCosto').value) || 0;
+            const ganancia = parseFloat(document.getElementById('editInvGanancia').value) || 0;
 
             if (!nombre || !precio) { mostrarNotificacion('⚠️ Nombre y Precio requeridos', 'error'); return; }
 
+            const payload = {
+    id_comerciante: comercianteData.id,
+    tipo: 'GASTO',
+    monto: monto,
+    categoria: cat,
+    descripcion: desc || `Gasto: ${cat}`,
+    fecha_hora: fechaHoraLocal,  // ✅ CAMBIADO: usar la variable que creamos arriba
+    id_local: idLocal
+};
+
+            console.log("🚀 Enviando actualización a n8n:", payload);
+
             try {
-                await fetch(WEBHOOKS.INVENTARIO_ACTUALIZAR, {
+                const response = await fetch(WEBHOOKS.INVENTARIO_ACTUALIZAR, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: productoEditando,
-                        nombre: nombre,
-                        categoria: categoria,
-                        precio: precio,
-                        stock: stock,
-                        comercio_id: comercianteData.id
-                    })
+                    body: JSON.stringify(payload)
                 });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error en n8n: ${response.status} - ${errorText}`);
+                }
 
                 mostrarNotificacion('✅ Producto actualizado', 'success');
                 cerrarModalEditProducto();
-                cargarInventario();
+                await cargarInventario(true); 
             } catch (e) {
-                console.error(e);
-                mostrarNotificacion('❌ Error al actualizar producto', 'error');
+                console.error("❌ Error en guardarEdicionProducto:", e);
+                mostrarNotificacion(`❌ Error: ${e.message}`, 'error');
             }
         }
 
@@ -1601,28 +2217,73 @@
             document.getElementById('modalSolicitarReporte').classList.remove('flex');
         }
 
+        // ✅ LÓGICA ACTIVADA: ENVIAR REPORTE (REVISADA)
         async function enviarSolicitudReporte(periodo) {
             cerrarModalReporte();
-            mostrarNotificacion(`📧 Solicitud de reporte (${periodo}) enviada`, 'success');
-            // Aquí se podría disparar un webhook de N8N que genere el PDF y lo envíe por email/whatsapp
-            console.log(`Solicitando reporte para periodo: ${periodo}`);
+
+            if (!isOnline) {
+                mostrarNotificacion('❌ Necesitas internet para solicitar reportes', 'error');
+                return;
+            }
+
+            // ✅ VALIDACIÓN EXTRA: ¿Tenemos el ID del comerciante?
+            if (!comercianteData.id) {
+                mostrarNotificacion('⚠️ Error: ID de comercio no detectado', 'error');
+                console.error("ID de comercio faltante al solicitar reporte");
+                return;
+            }
+
+            mostrarNotificacion(`📧 Solicitando reporte (${periodo})...`, 'warning');
+            console.log(`Solicitando reporte para periodo: ${periodo} (ID: ${comercianteData.id})`);
+
+            try {
+                // Obtenemos fechas exactas para el reporte
+                const { fechaDesde, fechaHasta } = obtenerRangoFechas(periodo);
+
+                // ✅ PAYLOAD EXACTO SEGÚN TU SOLICITUD (Solo ID y fechas)
+                const response = await fetch(WEBHOOKS.REPORTE_EMAIL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_comerciante: comercianteData.id,
+                        periodo: periodo, // "hoy", "semana", "mes"
+                        fecha_desde: fechaDesde,
+                        fecha_hasta: fechaHasta
+                    })
+                });
+
+                if(response.ok) {
+                    mostrarNotificacion(`✅ Solicitud enviada correctamente`, 'success');
+                } else {
+                    throw new Error('Error al generar reporte');
+                }
+
+            } catch (e) {
+                console.error(e);
+                mostrarNotificacion('❌ Error de conexión al solicitar reporte', 'error');
+            }
         }
 
-        async function eliminarProducto(id) {
-            if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+        async function eliminarProducto(id, codigo) {
+            const ident = codigo || id;
+            if (!confirm(`¿Estás seguro de eliminar el producto ${ident}?`)) return;
 
             try {
                 await fetch(WEBHOOKS.INVENTARIO_ELIMINAR, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        id: id,
+                        id: ident,
                         comercio_id: comercianteData.id
                     })
                 });
 
+                // Eliminamos del estado local inmediatamente para feedback visual
+                inventario = inventario.filter(p => (p.id != id && p.codigo != id) && (p.id != ident && p.codigo != ident));
+                renderInventarioList();
+
                 mostrarNotificacion('🗑️ Producto eliminado', 'success');
-                cargarInventario();
+                await cargarInventario(true); // Forzar recarga fresh del servidor
             } catch (e) {
                 console.error(e);
                 mostrarNotificacion('❌ Error al eliminar producto', 'error');
@@ -1675,12 +2336,29 @@
             }
 
             if (descInput) {
-                descInput.addEventListener('keyup', function (e) {
-                    if (e.key === 'Enter') {
-                        if (montoInput && montoInput.value && parseFloat(montoInput.value) > 0) {
-                            agregarItem();
+                descInput.addEventListener('keydown', function (e) {
+                    const items = document.querySelectorAll('.search-result-item');
+
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        selectedResultIndex = Math.min(selectedResultIndex + 1, items.length - 1);
+                        highlightResult(selectedResultIndex);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        selectedResultIndex = Math.max(selectedResultIndex - 1, -1);
+                        highlightResult(selectedResultIndex);
+                    } else if (e.key === 'Enter') {
+                        if (selectedResultIndex >= 0 && items[selectedResultIndex]) {
+                            e.preventDefault();
+                            const item = items[selectedResultIndex];
+                            seleccionarProducto(item.dataset.nombre, item.dataset.precio);
                         } else {
-                            montoInput.focus();
+                            // Comportamiento original si no hay nada seleccionado
+                            // PERO: Ahora tenemos handleVentasEnter en el inline HTML
+                            // Podemos dejar esto como fallback si falla el inline, 
+                            // o quitarlo para evitar doble trigger.
+                            // Mejor dejar que el inline maneje la lógica principal de búsqueda por código.
+                            // Si no es código, el inline pasa el foco a montoInput.
                         }
                     }
                 });
