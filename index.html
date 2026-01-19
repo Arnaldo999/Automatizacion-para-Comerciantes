@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - POS System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: #0f172a;
+        }
+        .pin-input {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            text-align: center;
+            border-radius: 12px;
+            background: #1e293b;
+            border: 2px solid #334155;
+            color: white;
+            font-weight: bold;
+        }
+        .pin-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+    
+    <div class="w-full max-width mx-auto p-8" style="max-width: 400px;">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-green-500 mb-2">POS SYSTEM</h1>
+            <p class="text-gray-400">Ingresa tus credenciales</p>
+        </div>
+
+        <div class="bg-gray-800 rounded-2xl p-8 border border-gray-700">
+            <form id="loginForm" class="space-y-6">
+                <!-- ID Comerciante -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2 font-bold uppercase">ID Comerciante</label>
+                    <input type="text" id="loginId" 
+                        class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-white text-lg focus:outline-none focus:border-green-500 uppercase"
+                        placeholder="C001" maxlength="10" required autocomplete="off">
+                </div>
+
+                <!-- PIN de 4 dígitos -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-3 font-bold uppercase">Código PIN</label>
+                    <div class="flex justify-between gap-3">
+                        <input type="text" inputmode="numeric" maxlength="1" 
+                            class="pin-input" data-pin-index="0" required autocomplete="off">
+                        <input type="text" inputmode="numeric" maxlength="1" 
+                            class="pin-input" data-pin-index="1" required autocomplete="off">
+                        <input type="text" inputmode="numeric" maxlength="1" 
+                            class="pin-input" data-pin-index="2" required autocomplete="off">
+                        <input type="text" inputmode="numeric" maxlength="1" 
+                            class="pin-input" data-pin-index="3" required autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="loginError" class="hidden bg-red-900/30 border border-red-500/50 rounded-lg p-3 text-red-400 text-sm text-center">
+                    <i class="fa-solid fa-circle-exclamation mr-2"></i>
+                    <span id="loginErrorText">Credenciales incorrectas</span>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="loginBtn"
+                    class="w-full bg-green-600 hover:bg-green-500 text-white font-bold text-xl py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>INGRESAR</span>
+                </button>
+            </form>
+        </div>
+
+        <div id="success" class="hidden mt-4 p-4 bg-green-900/30 border border-green-500 rounded-lg text-green-400 text-center">
+            ✅ Login exitoso!
+        </div>
+    </div>
+
+    <script>
+        // ✅ CORRECCIÓN: URL del webhook de producción
+        const WEBHOOK_URL = 'https://n8n.arnaldoayalaestratega.com/webhook/login';
+
+        // PIN Input Logic
+        const pinInputs = document.querySelectorAll('.pin-input');
+        
+        pinInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                if (!/^\d*$/.test(value)) {
+                    e.target.value = '';
+                    return;
+                }
+                
+                if (value && index < pinInputs.length - 1) {
+                    pinInputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    pinInputs[index - 1].focus();
+                }
+            });
+        });
+
+        // Login Form Handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loginId = document.getElementById('loginId').value.trim().toUpperCase();
+            const pin = Array.from(pinInputs).map(input => input.value).join('');
+            
+            if (!loginId || pin.length !== 4) {
+                mostrarError('Por favor completa todos los campos');
+                return;
+            }
+
+            const btn = document.getElementById('loginBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verificando...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cliente_id: loginId,
+                        pin: pin
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    document.getElementById('loginError').classList.add('hidden');
+                    document.getElementById('success').classList.remove('hidden');
+                    
+                    // Redirigir a la app real después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = `app.html?id=${loginId}`;
+                    }, 2000);
+                } else {
+                    mostrarError(data.message || 'Credenciales incorrectas');
+                    pinInputs.forEach(input => input.value = '');
+                    pinInputs[0].focus();
+                }
+            } catch (error) {
+                console.error('Error login:', error);
+                mostrarError('Error de conexión. Intenta nuevamente.');
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> INGRESAR';
+                btn.disabled = false;
+            }
+        });
+
+        function mostrarError(mensaje) {
+            const errorDiv = document.getElementById('loginError');
+            const errorText = document.getElementById('loginErrorText');
+            errorText.textContent = mensaje;
+            errorDiv.classList.remove('hidden');
+        }
+    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"a2e6eb6a1aab4c26825cfddd661c9628","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
