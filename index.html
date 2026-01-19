@@ -138,18 +138,17 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    document.getElementById('loginError').classList.add('hidden');
-                    document.getElementById('success').classList.remove('hidden');
-                    
-                    // Redirigir a la app real después de 2 segundos
-                    setTimeout(() => {
-                        window.location.href = `app.html?id=${loginId}`;
-                    }, 2000);
-                } else {
-                    mostrarError(data.message || 'Credenciales incorrectas');
-                    pinInputs.forEach(input => input.value = '');
-                    pinInputs[0].focus();
-                }
+    // 🔑 AQUÍ: Guardamos la llave de sesión antes de entrar
+    sessionStorage.setItem('sesion_activa', loginId); 
+
+    document.getElementById('loginError').classList.add('hidden');
+    document.getElementById('success').classList.remove('hidden');
+    
+    // Redirigir a la app real después de 2 segundos
+    setTimeout(() => {
+        window.location.href = `app.html?id=${loginId}`;
+    }, 2000);
+}
             } catch (error) {
                 console.error('Error login:', error);
                 mostrarError('Error de conexión. Intenta nuevamente.');
