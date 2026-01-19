@@ -1674,10 +1674,11 @@
             const payload = {
                 id_comerciante: comercianteData.id,
                 nombre: nombre,
-                precio: precio,
+                precio_final: precio,
                 stock: stock,
                 categoria: categoria,
                 codigo: codigo,
+                codigo_barra: codigo,
                 precio_costo: costo,
                 ganancia_porcentaje: ganancia
             };
@@ -1687,10 +1688,11 @@
                 const nuevoProducto = {
                     id: `temp_${Date.now()}`,
                     nombre: nombre,
-                    precio: precio,
+                    precio_final: precio,
                     stock: stock,
                     categoria: categoria,
                     codigo: codigo || 'PENDIENTE',
+                    codigo_barra:codigo
                     precio_costo: costo,
                     ganancia_porcentaje: ganancia
                 };
