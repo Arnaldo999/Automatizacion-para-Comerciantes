@@ -1187,6 +1187,19 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <script>
+        // --- EL GUARDIÁN DE SEGURIDAD ---
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    const idUrl = params.get('id'); // El ID que alguien escribió en la URL
+    const idSesion = sessionStorage.getItem('sesion_activa'); // El ID que guardamos en el Login
+
+    // Si no hay sesión, o si el ID de la URL no coincide con el del Login... ¡AFUERA!
+    if (!idSesion || idUrl !== idSesion) {
+        console.error("Acceso no autorizado o ID manipulado.");
+        window.location.href = 'index.html'; 
+    }
+})();
+// --------------------------------
         const WEBHOOKS = {
             CONSULTA: 'https://n8n.arnaldoayalaestratega.com/webhook/comerciante',
             REGISTRO: 'https://n8n.arnaldoayalaestratega.com/webhook/registro-comerciante',
