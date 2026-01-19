@@ -1651,88 +1651,83 @@
         }
 
         async function guardarProducto() {
-            const nombre = document.getElementById('invNombre').value.trim();
-            const precio = parseFloat(document.getElementById('invPrecio').value);
-            const stock = parseInt(document.getElementById('invStock').value) || 0;
-            const categoria = document.getElementById('invCategoria').value.trim();
+    const nombre = document.getElementById('invNombre').value.trim();
+    const precio = parseFloat(document.getElementById('invPrecio').value);
+    const stock = parseInt(document.getElementById('invStock').value) || 0;
+    const categoria = document.getElementById('invCategoria').value.trim();
 
-            // Nuevos Campos
-            const codigo = document.getElementById('invCodigo').value.trim();
-            const costo = parseFloat(document.getElementById('invCosto').value) || 0;
-            const ganancia = parseFloat(document.getElementById('invGanancia').value) || 0;
+    // Nuevos Campos
+    const codigo = document.getElementById('invCodigo').value.trim();
+    const costo = parseFloat(document.getElementById('invCosto').value) || 0;
+    const ganancia = parseFloat(document.getElementById('invGanancia').value) || 0;
 
-            if (!nombre || !precio) { mostrarNotificacion('⚠️ Nombre y Precio requeridos', 'error'); return; }
+    // ✅ CORRECCIÓN: Ahora permitimos que el precio sea 0 (importante para comercios)
+    if (!nombre || isNaN(precio)) { 
+        mostrarNotificacion('⚠️ Nombre y Precio requeridos', 'error'); 
+        return; 
+    }
 
-            const btn = document.getElementById('btnGuardarProducto');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
-            btn.disabled = true;
+    const btn = document.getElementById('btnGuardarProducto');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+    btn.disabled = true;
 
-            const idLocal = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const payload = {
+        id_comerciante: comercianteData.id,
+        nombre: nombre,
+        precio_final: precio, // ✅ Asegúrate que en n8n el campo se llame exactamente así
+        stock: stock,
+        categoria: categoria,
+        codigo: codigo,
+        codigo_barra: codigo,
+        precio_costo: costo,
+        ganancia_porcentaje: ganancia
+    };
 
-            // ✅ CORRECCIÓN: Payload correcto para inventario
-            const payload = {
-                id_comerciante: comercianteData.id,
-                nombre: nombre,
-                precio_final: precio,
-                stock: stock,
-                categoria: categoria,
-                codigo: codigo,
-                codigo_barra: codigo,
-                precio_costo: costo,
-                ganancia_porcentaje: ganancia
-            };
+    if (!isOnline) {
+        const nuevoProducto = {
+            id: `temp_${Date.now()}`,
+            nombre: nombre,
+            precio_final: precio,
+            stock: stock,
+            categoria: categoria,
+            codigo: codigo || 'PENDIENTE',
+            codigo_barra: codigo, // ✅ COMMA CORREGIDA AQUÍ
+            precio_costo: costo,
+            ganancia_porcentaje: ganancia
+        };
 
-            // ✅ Si estamos offline, guardar en caché local
-            if (!isOnline) {
-                const nuevoProducto = {
-                    id: `temp_${Date.now()}`,
-                    nombre: nombre,
-                    precio_final: precio,
-                    stock: stock,
-                    categoria: categoria,
-                    codigo: codigo || 'PENDIENTE',
-                    codigo_barra:codigo,
-                    precio_costo: costo,
-                    ganancia_porcentaje: ganancia
-                };
+        inventario.push(nuevoProducto);
+        guardarInventarioCache(inventario);
+        renderInventarioList();
+        mostrarNotificacion('📴 Producto guardado offline', 'warning');
+        limpiarCamposInventario();
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
 
-                inventario.push(nuevoProducto);
-                guardarInventarioCache(inventario);
-                renderInventarioList();
+    try {
+        const response = await fetch(WEBHOOKS.INVENTARIO, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-                mostrarNotificacion('📴 Producto guardado offline', 'warning');
+        if (!response.ok) throw new Error('Error en el servidor');
 
-                // Limpiar campos
-                limpiarCamposInventario();
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                return;
-            }
-
-            try {
-                const response = await fetch(WEBHOOKS.INVENTARIO, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) throw new Error('Error en el servidor');
-
-                mostrarNotificacion('✅ Producto guardado', 'success');
-                limpiarCamposInventario();
-
-                await cargarInventario(true); // Forzar recarga para asegurar IDs correctos del server
-            } catch (e) {
-                console.error('❌ Error saving product:', e);
-                mostrarNotificacion('❌ Error al guardar. Se guardará offline.', 'error');
-                guardarEnQueue({ ...payload, type: 'INVENTARIO' });
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
+        mostrarNotificacion('✅ Producto guardado', 'success');
+        limpiarCamposInventario();
+        await cargarInventario(true); 
+    } catch (e) {
+        console.error('❌ Error saving product:', e);
+        mostrarNotificacion('❌ Error al guardar. Se guardará offline.', 'error');
+        guardarEnQueue({ ...payload, type: 'INVENTARIO' });
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
 
         function limpiarCamposInventario() {
             document.getElementById('invNombre').value = '';
