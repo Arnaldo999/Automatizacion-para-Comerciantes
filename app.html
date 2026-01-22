@@ -2928,17 +2928,26 @@
             });
         }
     </script>
+    <div id="n8n-chat-target"></div>
     <script type="module">
         import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
 
         // Guardamos el chat en una variable global para controlarlo
         window.chatInstance = createChat({
             webhookUrl: 'https://n8n.arnaldoayalaestratega.com/webhook/d13fd268-2d98-4538-b7a6-fcc82e46be6d/chat',
+            target: '#n8n-chat-target',
             mode: 'window',
             showWelcomeMessage: true,
-            title: 'Asistencia 360',
-            welcomeMessage: '¡Hola! 👋 ¿En qué puedo ayudarte con la app?',
-            chatInputPlaceholder: 'Escribe tu consulta...',
+            i18n: {
+                en: {
+                    title: 'Asistencia 360',
+                    welcome: '¡Hola! 👋 ¿En qué puedo ayudarte con la app?',
+                    subtitle: 'Estamos aquí para ayudarte 24/7',
+                    inputPlaceholder: 'Escribe tu consulta...',
+                    getStarted: 'Iniciar Chat',
+                    close: 'Cerrar'
+                }
+            },
             theme: {
                 button: {
                     backgroundColor: '#e91e63',
@@ -2949,12 +2958,13 @@
 
         // Función para mostrar/ocultar el chat
         window.toggleBot = function (show) {
-            const chatContainer = document.querySelector('.n8n-chat-widget');
+            const chatContainer = document.getElementById('n8n-chat-target');
             if (chatContainer) {
                 chatContainer.style.display = show ? 'block' : 'none';
             }
         };
     </script>
+
 </body>
 
 </html>
