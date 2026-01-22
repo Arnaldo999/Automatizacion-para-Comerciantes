@@ -2905,5 +2905,27 @@
         }
     </script>
 </body>
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
 
+<script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+  createChat({
+    // Tu URL específica de n8n
+    webhookUrl: 'https://n8n.arnaldoayalaestratega.com/webhook/d13fd268-2d98-4538-b7a6-fcc82e46be6d/chat',
+    
+    mode: 'window', 
+    chatInputPlaceholder: '¿En qué puedo ayudarte con la app?',
+    title: 'Asistencia 360',
+    showWelcomeMessage: true,
+    welcomeMessage: '¡Hola! Soy tu asistente para comerciantes. ¿Qué duda tienes sobre el funcionamiento de la app?',
+    
+    theme: {
+      button: {
+        backgroundColor: '#0070f3',
+        iconColor: '#ffffff'
+      }
+    }
+  });
+</script>
 </html>
