@@ -154,6 +154,25 @@
                 flex-shrink: 0;
             }
         }
+
+        /* Agrega el texto "Ayuda" al lado de la burbuja */
+        .n8n-chat-widget-button::after {
+            content: "Ayuda";
+            position: absolute;
+            right: 70px;
+            background: #e91e63;
+            padding: 5px 12px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Ocultar por defecto para controlarlo con JS */
+        .n8n-chat-widget {
+            display: none;
+        }
     </style>
 </head>
 
@@ -1185,21 +1204,21 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
-    <script>
-        // --- EL GUARDIÁN DE SEGURIDAD ---
-(function() {
-    const params = new URLSearchParams(window.location.search);
-    const idUrl = params.get('id'); // El ID que alguien escribió en la URL
-    const idSesion = sessionStorage.getItem('sesion_activa'); // El ID que guardamos en el Login
 
-    // Si no hay sesión, o si el ID de la URL no coincide con el del Login... ¡AFUERA!
-    if (!idSesion || idUrl !== idSesion) {
-        console.error("Acceso no autorizado o ID manipulado.");
-        window.location.href = 'index.html'; 
-    }
-})();
-// --------------------------------
+    <script>
+            // --- EL GUARDIÁN DE SEGURIDAD ---
+            (function () {
+                const params = new URLSearchParams(window.location.search);
+                const idUrl = params.get('id'); // El ID que alguien escribió en la URL
+                const idSesion = sessionStorage.getItem('sesion_activa'); // El ID que guardamos en el Login
+
+                // Si no hay sesión, o si el ID de la URL no coincide con el del Login... ¡AFUERA!
+                if (!idSesion || idUrl !== idSesion) {
+                    console.error("Acceso no autorizado o ID manipulado.");
+                    window.location.href = 'index.html';
+                }
+            })();
+        // --------------------------------
         const WEBHOOKS = {
             CONSULTA: 'https://n8n.arnaldoayalaestratega.com/webhook/comerciante',
             REGISTRO: 'https://n8n.arnaldoayalaestratega.com/webhook/registro-comerciante',
@@ -1411,10 +1430,12 @@
             // Mostrar botón perfil
             const perfilBtn = document.getElementById('perfil-btn-container');
             if (perfilBtn) perfilBtn.classList.remove('hidden');
+            if (window.toggleBot) window.toggleBot(true);
         }
         async function showVentasScreen() {
             hideAllScreens();
             document.getElementById('ventas-screen').classList.add('active');
+            if (window.toggleBot) window.toggleBot(false);
 
             // ✅ Asegurar inventario fresco si está vacío, pero sin bloquear la UI
             if (inventario.length === 0) {
@@ -1424,12 +1445,13 @@
 
             document.getElementById('descripcionInput').focus();
         }
-        function showGastosScreen() { hideAllScreens(); document.getElementById('gastos-screen').classList.add('active'); document.getElementById('montoGasto').focus(); }
-        function showInventarioScreen() { hideAllScreens(); document.getElementById('inventario-screen').classList.add('active'); }
-        async function showHistorialScreen() { hideAllScreens(); document.getElementById('historial-screen').classList.add('active'); await cargarHistorial(); }
+        function showGastosScreen() { hideAllScreens(); document.getElementById('gastos-screen').classList.add('active'); if (window.toggleBot) window.toggleBot(false); document.getElementById('montoGasto').focus(); }
+        function showInventarioScreen() { hideAllScreens(); document.getElementById('inventario-screen').classList.add('active'); if (window.toggleBot) window.toggleBot(false); }
+        async function showHistorialScreen() { hideAllScreens(); document.getElementById('historial-screen').classList.add('active'); if (window.toggleBot) window.toggleBot(false); await cargarHistorial(); }
         function showConfigScreen() {
             hideAllScreens();
             document.getElementById('config-screen').classList.add('active');
+            if (window.toggleBot) window.toggleBot(false);
             // Actualizar info del usuario en config
             const configUserId = document.getElementById('configUserId');
             if (configUserId) configUserId.textContent = comercianteData.id || '---';
@@ -1665,83 +1687,83 @@
         }
 
         async function guardarProducto() {
-    const nombre = document.getElementById('invNombre').value.trim();
-    const precio = parseFloat(document.getElementById('invPrecio').value);
-    const stock = parseInt(document.getElementById('invStock').value) || 0;
-    const categoria = document.getElementById('invCategoria').value.trim();
+            const nombre = document.getElementById('invNombre').value.trim();
+            const precio = parseFloat(document.getElementById('invPrecio').value);
+            const stock = parseInt(document.getElementById('invStock').value) || 0;
+            const categoria = document.getElementById('invCategoria').value.trim();
 
-    // Nuevos Campos
-    const codigo = document.getElementById('invCodigo').value.trim();
-    const costo = parseFloat(document.getElementById('invCosto').value) || 0;
-    const ganancia = parseFloat(document.getElementById('invGanancia').value) || 0;
+            // Nuevos Campos
+            const codigo = document.getElementById('invCodigo').value.trim();
+            const costo = parseFloat(document.getElementById('invCosto').value) || 0;
+            const ganancia = parseFloat(document.getElementById('invGanancia').value) || 0;
 
-    // ✅ CORRECCIÓN: Ahora permitimos que el precio sea 0 (importante para comercios)
-    if (!nombre || isNaN(precio)) { 
-        mostrarNotificacion('⚠️ Nombre y Precio requeridos', 'error'); 
-        return; 
-    }
+            // ✅ CORRECCIÓN: Ahora permitimos que el precio sea 0 (importante para comercios)
+            if (!nombre || isNaN(precio)) {
+                mostrarNotificacion('⚠️ Nombre y Precio requeridos', 'error');
+                return;
+            }
 
-    const btn = document.getElementById('btnGuardarProducto');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
-    btn.disabled = true;
+            const btn = document.getElementById('btnGuardarProducto');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+            btn.disabled = true;
 
-    const payload = {
-        id_comerciante: comercianteData.id,
-        nombre: nombre,
-        precio_final: precio, // ✅ Asegúrate que en n8n el campo se llame exactamente así
-        stock: stock,
-        categoria: categoria,
-        codigo: codigo,
-        codigo_barra: codigo,
-        precio_costo: costo,
-        ganancia_porcentaje: ganancia
-    };
+            const payload = {
+                id_comerciante: comercianteData.id,
+                nombre: nombre,
+                precio_final: precio, // ✅ Asegúrate que en n8n el campo se llame exactamente así
+                stock: stock,
+                categoria: categoria,
+                codigo: codigo,
+                codigo_barra: codigo,
+                precio_costo: costo,
+                ganancia_porcentaje: ganancia
+            };
 
-    if (!isOnline) {
-        const nuevoProducto = {
-            id: `temp_${Date.now()}`,
-            nombre: nombre,
-            precio_final: precio,
-            stock: stock,
-            categoria: categoria,
-            codigo: codigo || 'PENDIENTE',
-            codigo_barra: codigo, // ✅ COMMA CORREGIDA AQUÍ
-            precio_costo: costo,
-            ganancia_porcentaje: ganancia
-        };
+            if (!isOnline) {
+                const nuevoProducto = {
+                    id: `temp_${Date.now()}`,
+                    nombre: nombre,
+                    precio_final: precio,
+                    stock: stock,
+                    categoria: categoria,
+                    codigo: codigo || 'PENDIENTE',
+                    codigo_barra: codigo, // ✅ COMMA CORREGIDA AQUÍ
+                    precio_costo: costo,
+                    ganancia_porcentaje: ganancia
+                };
 
-        inventario.push(nuevoProducto);
-        guardarInventarioCache(inventario);
-        renderInventarioList();
-        mostrarNotificacion('📴 Producto guardado offline', 'warning');
-        limpiarCamposInventario();
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        return;
-    }
+                inventario.push(nuevoProducto);
+                guardarInventarioCache(inventario);
+                renderInventarioList();
+                mostrarNotificacion('📴 Producto guardado offline', 'warning');
+                limpiarCamposInventario();
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
 
-    try {
-        const response = await fetch(WEBHOOKS.INVENTARIO, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+            try {
+                const response = await fetch(WEBHOOKS.INVENTARIO, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-        if (!response.ok) throw new Error('Error en el servidor');
+                if (!response.ok) throw new Error('Error en el servidor');
 
-        mostrarNotificacion('✅ Producto guardado', 'success');
-        limpiarCamposInventario();
-        await cargarInventario(true); 
-    } catch (e) {
-        console.error('❌ Error saving product:', e);
-        mostrarNotificacion('❌ Error al guardar. Se guardará offline.', 'error');
-        guardarEnQueue({ ...payload, type: 'INVENTARIO' });
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-}
+                mostrarNotificacion('✅ Producto guardado', 'success');
+                limpiarCamposInventario();
+                await cargarInventario(true);
+            } catch (e) {
+                console.error('❌ Error saving product:', e);
+                mostrarNotificacion('❌ Error al guardar. Se guardará offline.', 'error');
+                guardarEnQueue({ ...payload, type: 'INVENTARIO' });
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
 
         function limpiarCamposInventario() {
             document.getElementById('invNombre').value = '';
@@ -2904,5 +2926,33 @@
             });
         }
     </script>
+    <script type="module">
+        import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+        // Guardamos el chat en una variable global para controlarlo
+        window.chatInstance = createChat({
+            webhookUrl: 'https://n8n.arnaldoayalaestratega.com/webhook/d13fd268-2d98-4538-b7a6-fcc82e46be6d/chat',
+            mode: 'window',
+            showWelcomeMessage: true,
+            title: 'Asistencia 360',
+            welcomeMessage: '¡Hola! 👋 ¿En qué puedo ayudarte con la app?',
+            chatInputPlaceholder: 'Escribe tu consulta...',
+            theme: {
+                button: {
+                    backgroundColor: '#e91e63',
+                    iconColor: '#ffffff'
+                }
+            }
+        });
+
+        // Función para mostrar/ocultar el chat
+        window.toggleBot = function (show) {
+            const chatContainer = document.querySelector('.n8n-chat-widget');
+            if (chatContainer) {
+                chatContainer.style.display = show ? 'block' : 'none';
+            }
+        };
+    </script>
 </body>
+
 </html>
