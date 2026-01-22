@@ -185,18 +185,18 @@
 
         /* Ajuste para móvil para evitar superposición con el menú inferior */
         /* Ajuste para móvil para evitar superposición con el menú inferior */
+        /* Ajuste para móvil para evitar superposición con el menú inferior */
         @media (max-width: 768px) {
             .n8n-chat-widget iframe {
-                bottom: 120px !important;
-                /* Más alto para no tapar Stock */
+                bottom: 160px !important;
+                /* Aún más alto para evitar cualquier solapamiento */
             }
 
             .n8n-chat-widget-button {
-                bottom: 120px !important;
-                /* Más alto para no tapar Stock */
+                bottom: 160px !important;
+                /* Aún más alto para evitar cualquier solapamiento */
             }
 
-            /* Ocultar la burbuja de texto en móvil para limpiar la interfaz */
             /* Ajuste para burbuja de texto en móvil: Mostrar arriba del botón */
             .n8n-chat-widget-button::after {
                 display: block !important;
@@ -205,7 +205,7 @@
                 transform: translateX(-50%) !important;
                 top: auto !important;
                 bottom: 70px !important;
-                /* Arriba del botón */
+                /* Mantenemos relativo al botón */
                 border-radius: 20px 20px 20px 0 !important;
                 font-size: 12px !important;
                 padding: 6px 12px !important;
