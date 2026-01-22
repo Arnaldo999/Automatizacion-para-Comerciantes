@@ -184,15 +184,21 @@
         }
 
         /* Ajuste para móvil para evitar superposición con el menú inferior */
+        /* Ajuste para móvil para evitar superposición con el menú inferior */
         @media (max-width: 768px) {
             .n8n-chat-widget iframe {
-                bottom: 90px !important;
-                /* Levantar el chat por encima del menú inferior */
+                bottom: 120px !important;
+                /* Más alto para no tapar Stock */
             }
 
             .n8n-chat-widget-button {
-                bottom: 90px !important;
-                /* Levantar el botón del chat */
+                bottom: 120px !important;
+                /* Más alto para no tapar Stock */
+            }
+
+            /* Ocultar la burbuja de texto en móvil para limpiar la interfaz */
+            .n8n-chat-widget-button::after {
+                display: none !important;
             }
         }
     </style>
@@ -342,8 +348,9 @@
 
                 <!-- ✅ HERO SECTION & MENU LAYOUT -->
                 <!-- ✅ OPTIMIZACION: Mayor compactación (gap-3, min-h reducida) -->
+                <!-- Agregamos lg:pt-12 para dejar espacio al botón de perfil en escritorio -->
                 <div
-                    class="flex flex-col lg:flex-row gap-3 items-stretch justify-center h-full lg:h-auto min-h-[400px]">
+                    class="lg:pt-12 flex flex-col lg:flex-row gap-3 items-stretch justify-center h-full lg:h-auto min-h-[400px]">
 
                     <!-- COLUMN 1: MENÚ (55%) -->
                     <!-- ✅ OPTIMIZACION: space-y reducido a 4 -->
