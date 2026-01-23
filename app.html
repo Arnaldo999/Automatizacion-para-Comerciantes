@@ -186,13 +186,15 @@
         /* Ajuste para móvil para evitar superposición con el menú inferior */
         @media (max-width: 768px) {
             .n8n-chat-widget iframe {
-                bottom: 35vh !important;
-                /* Mitad de pantalla aprox, orden del usuario */
+                bottom: 50vh !important;
+                /* Mitad exacta de la pantalla */
+                z-index: 10000 !important;
             }
 
             .n8n-chat-widget-button {
-                bottom: 35vh !important;
-                /* Mitad de pantalla aprox, orden del usuario */
+                bottom: 50vh !important;
+                /* Mitad exacta de la pantalla */
+                z-index: 10000 !important;
             }
 
             /* Ajuste para burbuja de texto en móvil: Mostrar arriba del botón */
@@ -337,8 +339,9 @@
             <!-- MENU SCREEN -->
             <!-- ✅ PERFIL DE USUARIO MOVIDO FUERA DEL CONTENEDOR LIMITADO -->
             <!-- Lo ponemos fixed o absolute relativo al main para que se pegue a la derecha real -->
+            <!-- Ajuste Móvil: top-20 para que no tape el header ni el título, Escritorio: top-4 -->
             <div id="perfil-btn-container"
-                class="absolute top-4 right-4 z-50 md:right-8 transition-opacity duration-300">
+                class="absolute top-20 md:top-4 right-4 z-50 md:right-8 transition-opacity duration-300">
                 <button onclick="abrirPerfil()" class="group flex items-center gap-3 focus:outline-none">
                     <div class="text-right hidden sm:block">
                         <p id="miniPerfilNombre" class="text-xs font-bold text-white leading-tight">Cargando...</p>
@@ -383,62 +386,66 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <!-- Ventas -->
                             <div onclick="showVentasScreen()"
-                                class="glass-panel p-4 rounded-2xl cursor-pointer group hover:bg-gray-800/80 transition-all border border-gray-700 hover:border-primary/50 relative overflow-hidden">
+                                class="glass-panel p-4 rounded-2xl cursor-pointer group hover:bg-gray-800/80 transition-all border border-gray-700 hover:border-primary/50 relative overflow-hidden flex flex-col justify-end min-h-[140px]">
                                 <div
                                     class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <i class="fa-solid fa-cash-register text-4xl text-primary"></i>
                                 </div>
                                 <div
-                                    class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary text-lg mb-2 group-hover:scale-110 transition-transform">
+                                    class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary text-lg mb-2 group-hover:scale-110 transition-transform flex-shrink-0">
                                     <i class="fa-solid fa-sack-dollar"></i>
                                 </div>
-                                <h3 class="text-base font-bold text-white mb-0.5">Nueva Venta</h3>
-                                <p class="text-[10px] text-gray-400">Registrar venta y cobro</p>
+                                <h3 class="text-base font-bold text-white mb-0.5 break-words line-clamp-1">Nueva Venta
+                                </h3>
+                                <p class="text-[10px] text-gray-400 leading-tight">Registrar venta y cobro</p>
                             </div>
 
                             <!-- Gastos -->
                             <div onclick="showGastosScreen()"
-                                class="glass-panel p-4 rounded-2xl cursor-pointer group hover:bg-gray-800/80 transition-all border border-gray-700 hover:border-red-500/50 relative overflow-hidden">
+                                class="glass-panel p-4 rounded-2xl cursor-pointer group hover:bg-gray-800/80 transition-all border border-gray-700 hover:border-red-500/50 relative overflow-hidden flex flex-col justify-end min-h-[140px]">
                                 <div
                                     class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <i class="fa-solid fa-file-invoice-dollar text-4xl text-red-500"></i>
                                 </div>
                                 <div
-                                    class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500 text-lg mb-2 group-hover:scale-110 transition-transform">
+                                    class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500 text-lg mb-2 group-hover:scale-110 transition-transform flex-shrink-0">
                                     <i class="fa-solid fa-chart-simple"></i>
                                 </div>
-                                <h3 class="text-base font-bold text-white mb-0.5">Registrar Gasto</h3>
-                                <p class="text-[10px] text-gray-400">Salida de dinero</p>
+                                <h3 class="text-base font-bold text-white mb-0.5 break-words line-clamp-1">Registrar
+                                    Gasto</h3>
+                                <p class="text-[10px] text-gray-400 leading-tight">Salida de dinero</p>
                             </div>
 
                             <!-- Historial -->
                             <div onclick="showHistorialScreen()"
-                                class="glass-panel p-4 rounded-2xl cursor-pointer group hover:bg-gray-800/80 transition-all border border-gray-700 hover:border-blue-500/50 relative overflow-hidden">
+                                class="glass-panel p-4 rounded-2xl cursor-pointer group hover:bg-gray-800/80 transition-all border border-gray-700 hover:border-blue-500/50 relative overflow-hidden flex flex-col justify-end min-h-[140px]">
                                 <div
                                     class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <i class="fa-solid fa-calendar-days text-4xl text-blue-500"></i>
                                 </div>
                                 <div
-                                    class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 text-lg mb-2 group-hover:scale-110 transition-transform">
+                                    class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 text-lg mb-2 group-hover:scale-110 transition-transform flex-shrink-0">
                                     <i class="fa-solid fa-chart-line"></i>
                                 </div>
-                                <h3 class="text-base font-bold text-white mb-0.5">Historial</h3>
-                                <p class="text-[10px] text-gray-400">Balance y movimientos</p>
+                                <h3 class="text-base font-bold text-white mb-0.5 break-words line-clamp-1">Historial
+                                </h3>
+                                <p class="text-[10px] text-gray-400 leading-tight">Balance y movimientos</p>
                             </div>
 
                             <!-- Inventario -->
                             <div onclick="showInventarioScreen()"
-                                class="glass-panel p-4 rounded-2xl cursor-pointer group hover:bg-gray-800/80 transition-all border border-gray-700 hover:border-gold/50 relative overflow-hidden">
+                                class="glass-panel p-4 rounded-2xl cursor-pointer group hover:bg-gray-800/80 transition-all border border-gray-700 hover:border-gold/50 relative overflow-hidden flex flex-col justify-end min-h-[140px]">
                                 <div
                                     class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <i class="fa-solid fa-boxes text-4xl text-gold"></i>
                                 </div>
                                 <div
-                                    class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center text-gold text-lg mb-2 group-hover:scale-110 transition-transform">
+                                    class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center text-gold text-lg mb-2 group-hover:scale-110 transition-transform flex-shrink-0">
                                     <i class="fa-solid fa-box"></i>
                                 </div>
-                                <h3 class="text-base font-bold text-white mb-0.5">Inventario</h3>
-                                <p class="text-[10px] text-gray-400">Stock y productos</p>
+                                <h3 class="text-base font-bold text-white mb-0.5 break-words line-clamp-1">Inventario
+                                </h3>
+                                <p class="text-[10px] text-gray-400 leading-tight">Stock y productos</p>
                             </div>
                         </div>
 
@@ -2137,9 +2144,9 @@
 
                 return `
                 <div class="flex justify-between items-center p-3 bg-dark/40 rounded-xl border border-gray-700 group hover:border-primary/30 transition-all">
-                    <div class="flex-1">
+                    <div class="flex-1 min-w-0">
                         <div class="text-xs font-medium text-gray-200 truncate pr-2 flex items-center gap-2">
-                            ${item.descripcion} ${cantidadLabel}
+                            <span class="truncate block">${item.descripcion}</span> ${cantidadLabel}
                         </div>
                         <div class="text-lg font-bold text-primary font-mono">$ ${item.monto.toFixed(2)}</div>
                         ${cantidad > 1 ? `<div class="text-[10px] text-gray-500">$${precioUnit.toFixed(2)} c/u</div>` : ''}
