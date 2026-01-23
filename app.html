@@ -3061,98 +3061,99 @@
             });
         }
     </script>
-    <div id="n8n-chat-target"></div>
-    <script type="module">
-        import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+<script type="module">
+    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
 
-        // Guardamos el chat en una variable global para controlarlo
-        window.chatInstance = createChat({
-            webhookUrl: 'https://n8n.arnaldoayalaestratega.com/webhook/d13fd268-2d98-4538-b7a6-fcc82e46be6d/chat',
-            target: '#n8n-chat-target',
-            mode: 'window',
-            showWelcomeMessage: false,
-            initialMessages: [
-                '¡Hola! 👋',
-                'Soy tu asistente para comerciantes. ¿Qué duda tienes sobre el funcionamiento de la app?'
-            ],
-            i18n: {
-                en: {
-                    title: 'Asistencia 360',
-                    welcome: '¡Hola! 👋 ¿En qué puedo ayudarte con la app?',
-                    subtitle: 'Estamos aquí para ayudarte 24/7',
-                    inputPlaceholder: 'Escribe tu consulta...',
-                    getStarted: 'Iniciar Chat',
-                    close: 'Cerrar'
-                }
-            },
-            theme: {
-                button: {
-                    backgroundColor: '#e91e63',
-                    iconColor: '#ffffff'
-                }
+    // Guardamos el chat en una variable global para controlarlo
+    window.chatInstance = createChat({
+        webhookUrl: 'https://n8n.arnaldoayalaestratega.com/webhook/d13fd268-2d98-4538-b7a6-fcc82e46be6d/chat',
+        target: '#n8n-chat-target',
+        mode: 'window',
+        showWelcomeMessage: false,
+        initialMessages: [
+            '¡Hola! 👋',
+            'Soy tu asistente para comerciantes. ¿Qué duda tienes sobre el funcionamiento de la app?'
+        ],
+        i18n: {
+            en: {
+                title: 'Asistencia 360',
+                welcome: '¡Hola! 👋 ¿En qué puedo ayudarte con la app?',
+                subtitle: 'Estamos aquí para ayudarte 24/7',
+                inputPlaceholder: 'Escribe tu consulta...',
+                getStarted: 'Iniciar Chat',
+                close: 'Cerrar'
             }
-        });
-
-        // Función para mostrar/ocultar el chat
-        window.toggleBot = function (show) {
-            const chatContainer = document.getElementById('n8n-chat-target');
-            if (chatContainer) {
-                chatContainer.style.display = show ? 'block' : 'none';
+        },
+        theme: {
+            button: {
+                backgroundColor: '#e91e63',
+                iconColor: '#ffffff'
             }
-        };
+        },
+        messageParser: (message) => {
+            try {
+                // Si el mensaje ya es un objeto con text y buttons
+                if (typeof message === 'object' && message.text) {
+                    const texto = message.text;
+                    const botones = message.buttons || [];
 
-        // 🔗 Interceptor de enlaces del chat
-        setTimeout(() => {
-            const chatTarget = document.getElementById('n8n-chat-target');
-            if (!chatTarget) return;
+                    if (botones.length === 0) {
+                        return texto;
+                    }
 
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    mutation.addedNodes.forEach((node) => {
-                        if (node.nodeType === 1) { // Element node
-                            // Buscar elementos de mensaje que contengan URLs
-                            const messageElements = node.querySelectorAll ?
-                                node.querySelectorAll('[class*="message"], [class*="text"], p, span') : [];
-
-                            messageElements.forEach(el => {
-                                const text = el.textContent || '';
-
-                                if (text.includes('https://') || text.includes('http://')) {
-
-                                    // Convertir: "WhatsApp: https://wa.me/..." → enlace clickeable
-                                    const urlPattern = /(https?:\/\/[^\s]+)/g;
-                                    const newHTML = text.replace(urlPattern, (url) => {
-                                        let label = url;
-                                        let emoji = '🔗';
-
-                                        // Detectar tipo de enlace
-                                        if (url.includes('wa.me') || url.includes('whatsapp')) {
-                                            emoji = '💬';
-                                            label = 'WhatsApp';
-                                        } else if (url.includes('instagram')) {
-                                            emoji = '📸';
-                                            label = 'Instagram';
-                                        } else if (url.includes('arnaldoayalaestratega.com')) {
-                                            emoji = '🌐';
-                                            label = 'Sitio Web';
-                                        }
-
-                                        return `${emoji} <a href="${url}" target="_blank" style="color: #00a8ff; text-decoration: underline;">${label}</a>`;
-                                    });
-
-                                    if (newHTML !== text) {
-                                        el.innerHTML = newHTML;
-                                    }
-                                }
-                            });
-                        }
+                    // Construir mensaje con botones en formato Markdown
+                    let mensajeFinal = texto + '\n\n';
+                    
+                    botones.forEach(btn => {
+                        const etiqueta = btn.etiqueta || btn.label || 'Enlace';
+                        const url = btn.url;
+                        
+                        let emoji = '🔗';
+                        const labelLower = etiqueta.toLowerCase();
+                        if (labelLower.includes('whatsapp')) emoji = '💬';
+                        else if (labelLower.includes('instagram')) emoji = '📸';
+                        else if (labelLower.includes('web') || labelLower.includes('sitio')) emoji = '🌐';
+                        
+                        // Formato Markdown: [texto](url)
+                        mensajeFinal += `${emoji} [${etiqueta}](${url})\n`;
                     });
-                });
-            });
 
-            observer.observe(chatTarget, { childList: true, subtree: true });
-        }, 2000);
-    </script>
+                    return mensajeFinal;
+                }
+
+                // Si es string, intentar parsear
+                if (typeof message === 'string') {
+                    try {
+                        const parsed = JSON.parse(message);
+                        if (parsed.text || parsed.respuesta) {
+                            return this.messageParser(parsed);
+                        }
+                    } catch (e) {
+                        // No es JSON, devolver como está
+                        return message;
+                    }
+                }
+
+                return message;
+
+            } catch (error) {
+                console.error('Error en messageParser:', error);
+                return message;
+            }
+        }
+    });
+
+    // Función para mostrar/ocultar el chat
+    window.toggleBot = function (show) {
+        const chatContainer = document.getElementById('n8n-chat-target');
+        if (chatContainer) {
+            chatContainer.style.display = show ? 'block' : 'none';
+        }
+    };
+</script>
+
+</body>
+</html>
 
 </body>
 
