@@ -3151,10 +3151,107 @@
         }
     };
 </script>
+    <script>
+(function() {
+    let leyendaCreada = false;
+    
+    function aplicarEstilosForzados() {
+        const isMobile = window.innerWidth <= 768;
+        
+        // 1. BOTÓN
+        const chatButton = document.querySelector('.n8n-chat-widget-button, [class*="chat"][class*="button"]');
+        
+        if (chatButton) {
+            if (isMobile) {
+                chatButton.style.setProperty('bottom', '85px', 'important');
+                chatButton.style.setProperty('right', '20px', 'important');
+                chatButton.style.setProperty('z-index', '999999', 'important');
+            } else {
+                chatButton.style.setProperty('bottom', '20px', 'important');
+                chatButton.style.setProperty('right', '20px', 'important');
+            }
+        }
+        
+        // 2. IFRAME
+        const chatIframe = document.querySelector('.n8n-chat-widget iframe, iframe[src*="n8n"]');
+        
+        if (chatIframe) {
+            if (isMobile) {
+                chatIframe.style.setProperty('bottom', '85px', 'important');
+                chatIframe.style.setProperty('z-index', '999998', 'important');
+            } else {
+                chatIframe.style.setProperty('bottom', '20px', 'important');
+            }
+        }
+        
+        // 3. LEYENDA
+        if (chatButton && !leyendaCreada) {
+            let leyenda = document.getElementById('chat-leyenda-custom');
+            
+            if (!leyenda) {
+                leyenda = document.createElement('div');
+                leyenda.id = 'chat-leyenda-custom';
+                leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
+                
+                leyenda.style.position = 'fixed';
+                leyenda.style.background = '#e91e63';
+                leyenda.style.color = 'white';
+                leyenda.style.padding = '8px 16px';
+                leyenda.style.borderRadius = '20px';
+                leyenda.style.fontSize = '14px';
+                leyenda.style.fontWeight = 'bold';
+                leyenda.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+                leyenda.style.pointerEvents = 'none';
+                leyenda.style.zIndex = '999999';
+                leyenda.style.whiteSpace = 'nowrap';
+                leyenda.style.transition = 'all 0.3s ease';
+                
+                if (isMobile) {
+                    leyenda.style.bottom = '150px';
+                    leyenda.style.left = '50%';
+                    leyenda.style.transform = 'translateX(-50%)';
+                    leyenda.style.fontSize = '12px';
+                    leyenda.style.padding = '6px 12px';
+                } else {
+                    leyenda.style.bottom = '30px';
+                    leyenda.style.right = '90px';
+                }
+                
+                document.body.appendChild(leyenda);
+                leyendaCreada = true;
+                
+                setTimeout(() => {
+                    if (leyenda) {
+                        leyenda.style.opacity = '0';
+                        setTimeout(() => {
+                            if (leyenda && leyenda.parentNode) {
+                                leyenda.parentNode.removeChild(leyenda);
+                                leyendaCreada = false;
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            }
+        }
+    }
+    
+    let contador = 0;
+    const intervaloRapido = setInterval(() => {
+        aplicarEstilosForzados();
+        contador++;
+        if (contador > 50) clearInterval(intervaloRapido);
+    }, 100);
+    
+    setInterval(aplicarEstilosForzados, 1000);
+    window.addEventListener('resize', aplicarEstilosForzados);
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', aplicarEstilosForzados);
+    } else {
+        aplicarEstilosForzados();
+    }
+})();
+</script>
 
 </body>
-</html>
-
-</body>
-
 </html>
