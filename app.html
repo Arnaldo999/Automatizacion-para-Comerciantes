@@ -3201,6 +3201,73 @@
                 chatContainer.style.display = show ? 'block' : 'none';
             }
         };
+
+        // 🔥 INTERCEPTOR DE MENSAJES DEL CHAT (alternativa a messageParser)
+        // Como messageParser no se ejecuta, observamos el DOM directamente
+        setTimeout(() => {
+            const chatTarget = document.getElementById('n8n-chat-target');
+            if (!chatTarget) {
+                console.warn('⚠️ Chat target no encontrado');
+                return;
+            }
+
+            console.log('👀 Iniciando observador de mensajes del chat...');
+
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1) { // Element node
+                            // Buscar elementos de mensaje que contengan URLs
+                            const messageElements = node.querySelectorAll ?
+                                node.querySelectorAll('[class*="message"], [class*="text"], p, span') : [];
+
+                            messageElements.forEach(el => {
+                                const text = el.textContent || '';
+
+                                // Buscar patrones de URL y convertirlos a enlaces
+                                if (text.includes('https://') || text.includes('http://') || text.includes('www.')) {
+                                    console.log('🔗 Encontrado mensaje con URL:', text);
+
+                                    // Convertir: "WhatsApp: https://wa.me/..." → enlace clickeable
+                                    const urlPattern = /(https?:\/\/[^\s]+)/g;
+                                    const newHTML = text.replace(urlPattern, (url) => {
+                                        let label = url;
+                                        let emoji = '🔗';
+
+                                        // Detectar tipo de enlace
+                                        if (url.includes('wa.me') || url.includes('whatsapp')) {
+                                            emoji = '💬';
+                                            label = 'WhatsApp';
+                                        } else if (url.includes('instagram')) {
+                                            emoji = '📸';
+                                            label = 'Instagram';
+                                        } else if (url.includes('arnaldoayalaestratega.com')) {
+                                            emoji = '🌐';
+                                            label = 'Sitio Web';
+                                        }
+
+                                        return `${emoji} <a href="${url}" target="_blank" style="color: #00a8ff; text-decoration: underline;">${label}</a>`;
+                                    });
+
+                                    if (newHTML !== text) {
+                                        el.innerHTML = newHTML;
+                                        console.log('✅ Enlaces convertidos a clickeables');
+                                    }
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+
+            // Observar cambios en el contenedor del chat
+            observer.observe(chatTarget, {
+                childList: true,
+                subtree: true
+            });
+
+            console.log('✅ Observador de chat activo');
+        }, 2000); // Esperar 2s para que el chat se inicialice
     </script>
 
 </body>
