@@ -3093,27 +3093,75 @@
             },
             messageParser: (message) => {
                 try {
+                    console.log('📩 Mensaje recibido:', message);
                     let data = message;
+
+                    // Si es string, intentar parsear como JSON
                     if (typeof message === 'string') {
                         try {
                             data = JSON.parse(message);
+                            console.log('✅ JSON parseado:', data);
                         } catch (e) {
+                            console.log('⚠️ No es JSON, devolviendo como texto');
                             return message;
                         }
                     }
 
-                    const texto = data.text || data.respuesta || message;
-                    const botones = data.buttons || data.botones || [];
+                    // Extraer texto y botones de diferentes formatos posibles
+                    let texto = '';
+                    let botones = [];
 
-                    if (!Array.isArray(botones) || botones.length === 0) {
-                        return texto;
+                    // Formato 1: { output: "texto con enlaces ya formateados" } (tu workflow actual)
+                    if (data.output && typeof data.output === 'string') {
+                        console.log('📝 Formato: output string');
+                        return data.output; // Ya viene formateado del workflow
+                    }
+                    // Formato 2: { output: { text: "...", buttons: [...] } }
+                    else if (data.output && typeof data.output === 'object') {
+                        console.log('📦 Formato: output object');
+                        texto = data.output.text || '';
+                        botones = data.output.buttons || [];
+                    }
+                    // Formato 3: { text: "...", buttons: [...] }
+                    else if (data.text !== undefined) {
+                        console.log('📄 Formato: text/buttons');
+                        texto = data.text;
+                        botones = data.buttons || [];
+                    }
+                    // Formato 4: { respuesta: "...", botones: [...] }
+                    else if (data.respuesta !== undefined) {
+                        console.log('💬 Formato: respuesta/botones');
+                        texto = data.respuesta;
+                        botones = data.botones || [];
+                    }
+                    // Formato 5: Solo texto
+                    else {
+                        console.log('📋 Formato: texto plano');
+                        texto = typeof data === 'string' ? data : JSON.stringify(data);
                     }
 
+                    console.log('📝 Texto extraído:', texto);
+                    console.log('🔘 Botones encontrados:', botones);
+
+                    // Si no hay botones, devolver solo el texto
+                    if (!Array.isArray(botones) || botones.length === 0) {
+                        console.log('⚠️ Sin botones, devolviendo solo texto');
+                        return texto || message;
+                    }
+
+                    // Construir mensaje con botones en formato Markdown
                     let mensajeFinal = texto + '\n\n';
 
-                    botones.forEach(btn => {
+                    botones.forEach((btn, index) => {
                         const etiqueta = btn.etiqueta || btn.label || 'Enlace';
                         const url = btn.url;
+
+                        console.log(`🔘 Botón ${index + 1}:`, { etiqueta, url });
+
+                        if (!url) {
+                            console.log(`⚠️ Botón ${index + 1} sin URL, saltando`);
+                            return;
+                        }
 
                         let emoji = '🔗';
                         const labelLower = etiqueta.toLowerCase();
@@ -3125,11 +3173,12 @@
                         mensajeFinal += `${emoji} [${etiqueta}](${url})\n`;
                     });
 
+                    console.log('✅ Mensaje final:', mensajeFinal);
                     return mensajeFinal;
 
                 } catch (error) {
                     console.error('Error procesando mensaje:', error);
-                    return message;
+                    return typeof message === 'string' ? message : JSON.stringify(message);
                 }
             }
         });
