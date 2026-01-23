@@ -3011,6 +3011,31 @@
                 });
             }
         });
+
+        // ✅ JS FORCE: Agresivo script para asegurar que el chat suba en móvil
+        // N8n a veces inyecta estilos inline que ganan al CSS !important
+        setInterval(() => {
+            if (window.innerWidth <= 768) {
+                // Buscamos el botón y el iframe
+                const cBtn = document.querySelector('.n8n-chat-widget-button');
+                const cFrame = document.querySelector('.n8n-chat-widget iframe');
+
+                if (cBtn) {
+                    cBtn.style.setProperty('bottom', '115px', 'important');
+                    cBtn.style.setProperty('z-index', '99999', 'important');
+                    // Fix legend collision
+                    const after = window.getComputedStyle(cBtn, '::after');
+                }
+                if (cFrame) {
+                    cFrame.style.setProperty('bottom', '115px', 'important');
+                    cFrame.style.setProperty('z-index', '99999', 'important');
+                }
+            } else {
+                // Reset en escritorio si es necesario, o dejar que el CSS actúe
+                const cBtn = document.querySelector('.n8n-chat-widget-button');
+                if (cBtn) cBtn.style.bottom = '';
+            }
+        }, 1000); // Revisar cada segundo
     </script>
 
     <script>
