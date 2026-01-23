@@ -186,24 +186,25 @@
         /* Ajuste para móvil para evitar superposición con el menú inferior */
         @media (max-width: 768px) {
 
-            /* Targeting the container directly for robust positioning */
-            #n8n-chat-target {
-                position: fixed !important;
-                bottom: 110px !important;
-                /* Just above the bottom nav */
-                right: 20px !important;
-                z-index: 9999 !important;
+            /* REVERT to direct targeting as container approach failed */
+            .n8n-chat-widget iframe {
+                bottom: 115px !important;
+                /* Encima de la barra de navegación */
+                z-index: 10000 !important;
             }
 
-            /* Ensure internal elements respect this if needed, but container should handle it */
-            .n8n-chat-widget iframe,
             .n8n-chat-widget-button {
-                bottom: 0 !important;
-                /* Reset relative to container */
-                position: absolute !important;
+                bottom: 115px !important;
+                /* Encima de la barra de navegación */
+                z-index: 10000 !important;
             }
 
-            /* Restore legend if desired, or keep hidden/compact */
+            #n8n-chat-target {
+                position: static !important;
+                /* Reset container */
+            }
+
+            /* Restore legend */
             .n8n-chat-widget-button::after {
                 display: block !important;
                 right: auto !important;
@@ -326,13 +327,20 @@
         <!-- MOBILE HEADER -->
         <header
             class="md:hidden flex items-center justify-between p-4 bg-card/90 backdrop-blur border-b border-gray-800 sticky top-0 z-40">
-            <!-- Left: Logo & Title -->
-            <div class="flex items-center gap-2">
-                <img src="logo.png" alt="Logo" class="w-8 h-8 object-contain rounded-lg">
-                <div class="text-primary text-xl font-bold">POS</div>
-                <!-- Removed username here to save space, moved ID to right group -->
-                <div id="statusIndicator" class="flex items-center gap-1 ml-2">
-                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+            <!-- Left: Logo & Title & Name -->
+            <div class="flex items-center gap-2 overflow-hidden flex-1">
+                <img src="logo.png" alt="Logo" class="w-8 h-8 object-contain rounded-lg flex-shrink-0">
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                        <span class="text-primary text-xl font-bold leading-none">POS</span>
+                        <div id="statusIndicator" class="flex items-center gap-1">
+                            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span class="text-[10px] text-green-500 font-medium">Online</span>
+                        </div>
+                    </div>
+                    <!-- Nombre del local restaurado -->
+                    <div id="headerUserName"
+                        class="text-xs text-gray-300 font-medium truncate max-w-[120px] leading-tight">...</div>
                 </div>
             </div>
 
