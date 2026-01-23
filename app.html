@@ -3151,14 +3151,18 @@
         }
     };
 </script>
-    <script>
+   <script>
 (function() {
     let leyendaCreada = false;
     
     function aplicarEstilosForzados() {
         const isMobile = window.innerWidth <= 768;
         
-        // 1. BOTÓN
+        // 1. DETECTOR DE PANTALLA (Esta es la clave)
+        const menuInicio = document.getElementById('menu-screen');
+        const estaEnInicio = menuInicio && menuInicio.classList.contains('active');
+        
+        // 2. CONFIGURACIÓN DEL BOTÓN DE CHAT
         const chatButton = document.querySelector('.n8n-chat-widget-button, [class*="chat"][class*="button"]');
         
         if (chatButton) {
@@ -3172,9 +3176,8 @@
             }
         }
         
-        // 2. IFRAME
+        // 3. CONFIGURACIÓN DEL IFRAME
         const chatIframe = document.querySelector('.n8n-chat-widget iframe, iframe[src*="n8n"]');
-        
         if (chatIframe) {
             if (isMobile) {
                 chatIframe.style.setProperty('bottom', '85px', 'important');
@@ -3184,17 +3187,18 @@
             }
         }
         
-        // 3. LEYENDA
-        if (chatButton && !leyendaCreada) {
-            let leyenda = document.getElementById('chat-leyenda-custom');
-            
+        // 4. LÓGICA DE LA LEYENDA VERDE
+        let leyenda = document.getElementById('chat-leyenda-custom');
+        
+        // Condición: Solo si hay botón, estamos en Inicio y no se ha creado aún
+        if (chatButton && estaEnInicio && !leyendaCreada) {
             if (!leyenda) {
                 leyenda = document.createElement('div');
                 leyenda.id = 'chat-leyenda-custom';
                 leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
                 
                 leyenda.style.position = 'fixed';
-                leyenda.style.background = '#2db742';
+                leyenda.style.background = '#2db742'; // Tu verde de la Agencia
                 leyenda.style.color = 'white';
                 leyenda.style.padding = '8px 16px';
                 leyenda.style.borderRadius = '20px';
@@ -3211,7 +3215,6 @@
                     leyenda.style.left = '50%';
                     leyenda.style.transform = 'translateX(-50%)';
                     leyenda.style.fontSize = '12px';
-                    leyenda.style.padding = '6px 12px';
                 } else {
                     leyenda.style.bottom = '30px';
                     leyenda.style.right = '90px';
@@ -3220,8 +3223,9 @@
                 document.body.appendChild(leyenda);
                 leyendaCreada = true;
                 
+                // Desaparece sola a los 5 segundos
                 setTimeout(() => {
-                    if (leyenda) {
+                    if (leyenda && leyenda.parentNode) {
                         leyenda.style.opacity = '0';
                         setTimeout(() => {
                             if (leyenda && leyenda.parentNode) {
@@ -3232,9 +3236,15 @@
                     }
                 }, 5000);
             }
+        } 
+        // Si el usuario sale de Inicio, borramos la leyenda inmediatamente
+        else if (leyenda && !estaEnInicio) {
+            leyenda.remove();
+            leyendaCreada = false;
         }
     }
     
+    // Ejecución constante para asegurar que n8n no mueva el botón
     let contador = 0;
     const intervaloRapido = setInterval(() => {
         aplicarEstilosForzados();
