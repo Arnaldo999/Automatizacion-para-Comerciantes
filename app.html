@@ -3090,6 +3090,47 @@
                     backgroundColor: '#e91e63',
                     iconColor: '#ffffff'
                 }
+            },
+            messageParser: (message) => {
+                try {
+                    let data = message;
+                    if (typeof message === 'string') {
+                        try {
+                            data = JSON.parse(message);
+                        } catch (e) {
+                            return message;
+                        }
+                    }
+
+                    const texto = data.text || data.respuesta || message;
+                    const botones = data.buttons || data.botones || [];
+
+                    if (!Array.isArray(botones) || botones.length === 0) {
+                        return texto;
+                    }
+
+                    let mensajeFinal = texto + '\n\n';
+
+                    botones.forEach(btn => {
+                        const etiqueta = btn.etiqueta || btn.label || 'Enlace';
+                        const url = btn.url;
+
+                        let emoji = '🔗';
+                        const labelLower = etiqueta.toLowerCase();
+                        if (labelLower.includes('whatsapp')) emoji = '💬';
+                        else if (labelLower.includes('instagram')) emoji = '📸';
+                        else if (labelLower.includes('web') || labelLower.includes('sitio')) emoji = '🌐';
+
+                        // ✅ Formato Markdown: [texto](url) para enlaces clickeables
+                        mensajeFinal += `${emoji} [${etiqueta}](${url})\n`;
+                    });
+
+                    return mensajeFinal;
+
+                } catch (error) {
+                    console.error('Error procesando mensaje:', error);
+                    return message;
+                }
             }
         });
 
