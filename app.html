@@ -3143,6 +3143,17 @@
                     console.log('📝 Texto extraído:', texto);
                     console.log('🔘 Botones encontrados:', botones);
 
+                    // 🧪 MODO PRUEBA: Si no hay botones, agregar botones de prueba
+                    const MODO_PRUEBA = true; // Cambiar a false cuando funcione
+                    if (MODO_PRUEBA && (!Array.isArray(botones) || botones.length === 0)) {
+                        console.log('🧪 MODO PRUEBA: Agregando botones de prueba');
+                        botones = [
+                            { etiqueta: "WhatsApp", url: "https://wa.me/543765384843" },
+                            { etiqueta: "Instagram", url: "https://instagram.com/arnaldoayalaestratega" },
+                            { etiqueta: "Sitio Web", url: "https://arnaldoayalaestratega.com" }
+                        ];
+                    }
+
                     // Si no hay botones, devolver solo el texto
                     if (!Array.isArray(botones) || botones.length === 0) {
                         console.log('⚠️ Sin botones, devolviendo solo texto');
