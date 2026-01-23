@@ -389,9 +389,9 @@
 
                 <!-- ✅ HERO SECTION & MENU LAYOUT -->
                 <!-- ✅ OPTIMIZACION: Mayor compactación (gap-3, min-h reducida) -->
-                <!-- Agregamos lg:pt-12 para dejar espacio al botón de perfil en escritorio -->
+                <!-- Agregamos pt-6 en móvil para separar del header, y mantenemos lg:pt-12 en escritorio -->
                 <div
-                    class="lg:pt-12 flex flex-col lg:flex-row gap-3 items-stretch justify-center h-full lg:h-auto min-h-[400px]">
+                    class="pt-6 lg:pt-12 flex flex-col lg:flex-row gap-3 items-stretch justify-center h-full lg:h-auto min-h-[400px]">
 
                     <!-- COLUMN 1: MENÚ (55%) -->
                     <!-- ✅ OPTIMIZACION: space-y reducido a 4 -->
@@ -3014,28 +3014,42 @@
 
         // ✅ JS FORCE: Agresivo script para asegurar que el chat suba en móvil
         // N8n a veces inyecta estilos inline que ganan al CSS !important
-        setInterval(() => {
+        let checkCount = 0;
+        const forceChatPosition = () => {
             if (window.innerWidth <= 768) {
-                // Buscamos el botón y el iframe
-                const cBtn = document.querySelector('.n8n-chat-widget-button');
-                const cFrame = document.querySelector('.n8n-chat-widget iframe');
+                // Buscamos el botón y el iframe por todas sus clases posibles
+                const cBtn = document.querySelector('.n8n-chat-widget-button') || document.querySelector('[class*="chat-widget-button"]');
+                const cFrame = document.querySelector('.n8n-chat-widget iframe') || document.querySelector('iframe[src*="n8n"]');
+                const cTarget = document.getElementById('n8n-chat-target');
 
                 if (cBtn) {
-                    cBtn.style.setProperty('bottom', '115px', 'important');
-                    cBtn.style.setProperty('z-index', '99999', 'important');
-                    // Fix legend collision
-                    const after = window.getComputedStyle(cBtn, '::after');
+                    cBtn.style.setProperty('bottom', '120px', 'important');
+                    cBtn.style.setProperty('top', 'auto', 'important'); // Evitar conflicto
+                    cBtn.style.setProperty('z-index', '2147483647', 'important'); // Max Z-index
                 }
                 if (cFrame) {
-                    cFrame.style.setProperty('bottom', '115px', 'important');
-                    cFrame.style.setProperty('z-index', '99999', 'important');
+                    cFrame.style.setProperty('bottom', '120px', 'important');
+                    cFrame.style.setProperty('top', 'auto', 'important');
+                    cFrame.style.setProperty('z-index', '2147483647', 'important');
                 }
             } else {
-                // Reset en escritorio si es necesario, o dejar que el CSS actúe
+                // Reset en escritorio
                 const cBtn = document.querySelector('.n8n-chat-widget-button');
-                if (cBtn) cBtn.style.bottom = '';
+                if (cBtn) {
+                    cBtn.style.bottom = '';
+                    cBtn.style.top = '';
+                }
             }
-        }, 1000); // Revisar cada segundo
+        };
+
+        // Ejecutar rápido al principio, luego mantener
+        const fastInterval = setInterval(() => {
+            forceChatPosition();
+            checkCount++;
+            if (checkCount > 50) clearInterval(fastInterval); // Parar el rápido a los 5s
+        }, 100);
+
+        setInterval(forceChatPosition, 1000); // Mantenimiento continuo
     </script>
 
     <script>
