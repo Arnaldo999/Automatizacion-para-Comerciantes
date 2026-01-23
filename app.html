@@ -185,19 +185,25 @@
 
         /* Ajuste para móvil para evitar superposición con el menú inferior */
         @media (max-width: 768px) {
-            .n8n-chat-widget iframe {
-                bottom: 50vh !important;
-                /* Mitad exacta de la pantalla */
-                z-index: 10000 !important;
+
+            /* Targeting the container directly for robust positioning */
+            #n8n-chat-target {
+                position: fixed !important;
+                bottom: 110px !important;
+                /* Just above the bottom nav */
+                right: 20px !important;
+                z-index: 9999 !important;
             }
 
+            /* Ensure internal elements respect this if needed, but container should handle it */
+            .n8n-chat-widget iframe,
             .n8n-chat-widget-button {
-                bottom: 50vh !important;
-                /* Mitad exacta de la pantalla */
-                z-index: 10000 !important;
+                bottom: 0 !important;
+                /* Reset relative to container */
+                position: absolute !important;
             }
 
-            /* Ajuste para burbuja de texto en móvil: Mostrar arriba del botón */
+            /* Restore legend if desired, or keep hidden/compact */
             .n8n-chat-widget-button::after {
                 display: block !important;
                 right: auto !important;
@@ -205,7 +211,6 @@
                 transform: translateX(-50%) !important;
                 top: auto !important;
                 bottom: 70px !important;
-                /* Mantenemos relativo al botón */
                 border-radius: 20px 20px 20px 0 !important;
                 font-size: 12px !important;
                 padding: 6px 12px !important;
@@ -318,19 +323,33 @@
         </nav>
 
         <!-- MOBILE HEADER -->
+        <!-- MOBILE HEADER -->
         <header
             class="md:hidden flex items-center justify-between p-4 bg-card/90 backdrop-blur border-b border-gray-800 sticky top-0 z-40">
+            <!-- Left: Logo & Title -->
             <div class="flex items-center gap-2">
                 <img src="logo.png" alt="Logo" class="w-8 h-8 object-contain rounded-lg">
                 <div class="text-primary text-xl font-bold">POS</div>
-                <div id="headerUserName" class="text-sm text-gray-300 font-medium truncate max-w-[150px]">...</div>
-                <!-- ✅ Indicador de conexión -->
-                <div id="statusIndicator" class="flex items-center gap-1">
+                <!-- Removed username here to save space, moved ID to right group -->
+                <div id="statusIndicator" class="flex items-center gap-1 ml-2">
                     <div class="w-2 h-2 rounded-full bg-green-500"></div>
-                    <span class="text-xs text-green-500">Online</span>
                 </div>
             </div>
-            <div class="text-xs text-gray-500">ID: <span id="headerUserId">...</span></div>
+
+            <!-- Right: ID & Profile -->
+            <div class="flex items-center gap-3">
+                <div class="text-xs text-gray-400 font-medium">ID: <span id="headerUserId"
+                        class="text-gray-200">...</span></div>
+
+                <!-- Mobile Profile Button -->
+                <button onclick="abrirPerfil()"
+                    class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary p-[1px] shadow-lg shadow-primary/20">
+                    <div class="w-full h-full rounded-full bg-gray-900 overflow-hidden">
+                        <img id="mobileHeaderProfileImg" src="https://ui-avatars.com/api/?name=User&background=random"
+                            class="w-full h-full object-cover">
+                    </div>
+                </button>
+            </div>
         </header>
 
         <!-- CONTENT AREA -->
@@ -339,9 +358,9 @@
             <!-- MENU SCREEN -->
             <!-- ✅ PERFIL DE USUARIO MOVIDO FUERA DEL CONTENEDOR LIMITADO -->
             <!-- Lo ponemos fixed o absolute relativo al main para que se pegue a la derecha real -->
-            <!-- Ajuste Móvil: top-20 para que no tape el header ni el título, Escritorio: top-4 -->
+            <!-- Ajuste Móvil: OCULTO (hidden) pues ya está en el header, Escritorio: top-4 -->
             <div id="perfil-btn-container"
-                class="absolute top-20 md:top-4 right-4 z-50 md:right-8 transition-opacity duration-300">
+                class="hidden md:block absolute md:top-4 z-50 md:right-8 transition-opacity duration-300">
                 <button onclick="abrirPerfil()" class="group flex items-center gap-3 focus:outline-none">
                     <div class="text-right hidden sm:block">
                         <p id="miniPerfilNombre" class="text-xs font-bold text-white leading-tight">Cargando...</p>
@@ -1465,7 +1484,18 @@
 
                 updateUIFields('userName', comercianteData.nombre);
                 updateUIFields('sidebarUserName', comercianteData.nombre);
-                updateUIFields('headerUserName', comercianteData.nombre);
+                updateUIFields('headerUserName', comercianteData.nombre); // Might not exist on mobile now, handled safely
+
+                // ✅ Update Avatars
+                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(comercianteData.nombre)}&background=random`;
+                const mobileImg = document.getElementById('mobileHeaderProfileImg');
+                const desktopImg = document.getElementById('profileImageBtn');
+
+                if (mobileImg) mobileImg.src = avatarUrl;
+                if (desktopImg) desktopImg.src = avatarUrl;
+
+                const miniPerfil = document.getElementById('miniPerfilNombre');
+                if (miniPerfil) miniPerfil.textContent = comercianteData.nombre;
 
             } catch (error) {
                 console.error('Error:', error);
@@ -1483,8 +1513,10 @@
             hideAllScreens();
             document.getElementById('menu-screen').classList.add('active');
             // Mostrar botón perfil
+            // Mostrar botón perfil (Desktop) - Usamos style para respetar clases responsivas (hidden md:block)
             const perfilBtn = document.getElementById('perfil-btn-container');
-            if (perfilBtn) perfilBtn.classList.remove('hidden');
+            if (perfilBtn) perfilBtn.style.display = ''; // Revert to CSS (hidden on mobile, block on desktop)
+
             if (window.toggleBot) window.toggleBot(true);
         }
         async function showVentasScreen() {
@@ -1517,8 +1549,9 @@
         function hideAllScreens() {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             // Ocultar botón perfil en otras pantallas para limpiar UI
+            // Ocultar botón perfil en otras pantallas
             const perfilBtn = document.getElementById('perfil-btn-container');
-            if (perfilBtn) perfilBtn.classList.add('hidden');
+            if (perfilBtn) perfilBtn.style.display = 'none'; // Force hide
         }
 
         // ==========================================
