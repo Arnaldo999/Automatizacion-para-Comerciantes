@@ -3158,45 +3158,37 @@
     function aplicarEstilosForzados() {
         const isMobile = window.innerWidth <= 768;
         
-        // 1. DETECTOR DE PANTALLA (Solo en Inicio)
+        // 1. LLAVE DE SEGURIDAD: Detectar si estamos en Inicio
         const menuInicio = document.getElementById('menu-screen');
         const estaEnInicio = menuInicio && menuInicio.classList.contains('active');
         
-        // 2. FORZAR VISIBILIDAD (Para ganarle al CSS que dice "display: none")
-        const contenedorChat = document.querySelector('.n8n-chat-widget');
-        if (contenedorChat) {
-            contenedorChat.style.setProperty('display', 'block', 'important');
-        }
-
-        // 3. BUSCAR BOTÓN Y APLICAR POSICIONES
-        const chatButton = document.querySelector('.n8n-chat-widget-button');
-        const chatIframe = document.querySelector('.n8n-chat-widget iframe');
+        // 2. BOTÓN
+        const chatButton = document.querySelector('.n8n-chat-widget-button, [class*="chat"][class*="button"]');
         
-        // Si el botón existe, lo acomodamos
         if (chatButton) {
             if (isMobile) {
-                chatButton.style.setProperty('bottom', '80px', 'important'); 
+                chatButton.style.setProperty('bottom', '85px', 'important');
                 chatButton.style.setProperty('right', '20px', 'important');
-                chatButton.style.setProperty('position', 'fixed', 'important');
-                chatButton.style.setProperty('display', 'flex', 'important'); // Asegurar que se vea
+                chatButton.style.setProperty('z-index', '999999', 'important');
             } else {
-                chatButton.style.setProperty('bottom', '25px', 'important');
-                chatButton.style.setProperty('right', '25px', 'important');
+                chatButton.style.setProperty('bottom', '20px', 'important');
+                chatButton.style.setProperty('right', '20px', 'important');
             }
-            chatButton.style.setProperty('z-index', '999999', 'important');
-        }
-
-        // Acomodamos la ventana del chat (el iframe)
-        if (chatIframe) {
-            if (isMobile) {
-                chatIframe.style.setProperty('bottom', '80px', 'important');
-            } else {
-                chatIframe.style.setProperty('bottom', '25px', 'important');
-            }
-            chatIframe.style.setProperty('z-index', '999998', 'important');
         }
         
-        // 4. LÓGICA DE LA LEYENDA (El globito verde)
+        // 3. IFRAME
+        const chatIframe = document.querySelector('.n8n-chat-widget iframe, iframe[src*="n8n"]');
+        
+        if (chatIframe) {
+            if (isMobile) {
+                chatIframe.style.setProperty('bottom', '85px', 'important');
+                chatIframe.style.setProperty('z-index', '999998', 'important');
+            } else {
+                chatIframe.style.setProperty('bottom', '20px', 'important');
+            }
+        }
+        
+        // 4. LEYENDA (Solo si es Inicio)
         let leyenda = document.getElementById('chat-leyenda-custom');
         
         if (chatButton && estaEnInicio && !leyendaCreada) {
@@ -3205,38 +3197,35 @@
                 leyenda.id = 'chat-leyenda-custom';
                 leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
                 
-                // Estilos del globito
-                Object.assign(leyenda.style, {
-                    position: 'fixed',
-                    background: '#2db742', // Verde Agencia Ayala
-                    color: 'white',
-                    fontWeight: 'bold',
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
-                    pointerEvents: 'none',
-                    zIndex: '1000000',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.3s ease',
-                    borderRadius: '20px 20px 0 20px'
-                });
+                leyenda.style.position = 'fixed';
+                leyenda.style.background = '#2db742'; // Cambiado a tu verde
+                leyenda.style.color = 'white';
+                leyenda.style.padding = '8px 16px';
+                leyenda.style.borderRadius = '20px';
+                leyenda.style.fontSize = '14px';
+                leyenda.style.fontWeight = 'bold';
+                leyenda.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+                leyenda.style.pointerEvents = 'none';
+                leyenda.style.zIndex = '999999';
+                leyenda.style.whiteSpace = 'nowrap';
+                leyenda.style.transition = 'all 0.3s ease';
                 
                 if (isMobile) {
-                    leyenda.style.bottom = '135px'; // Justo sobre la burbuja
-                    leyenda.style.right = '20px';   
+                    leyenda.style.bottom = '135px'; // BAJADO: Antes estaba en 150px
+                    leyenda.style.left = '50%';
+                    leyenda.style.transform = 'translateX(-50%)';
                     leyenda.style.fontSize = '12px';
                     leyenda.style.padding = '6px 12px';
                 } else {
-                    leyenda.style.bottom = '35px'; 
-                    leyenda.style.right = '95px';  
-                    leyenda.style.fontSize = '14px';
-                    leyenda.style.padding = '8px 16px';
+                    leyenda.style.bottom = '30px';
+                    leyenda.style.right = '90px';
                 }
                 
                 document.body.appendChild(leyenda);
                 leyendaCreada = true;
                 
-                // Se borra solo en 6 segundos
                 setTimeout(() => {
-                    if (leyenda && leyenda.parentNode) {
+                    if (leyenda) {
                         leyenda.style.opacity = '0';
                         setTimeout(() => {
                             if (leyenda && leyenda.parentNode) {
@@ -3245,29 +3234,26 @@
                             }
                         }, 300);
                     }
-                }, 6000);
+                }, 5000);
             }
         } 
-        // Si no estamos en Inicio, borramos la leyenda
+        // Si sale de inicio, borramos la leyenda si existe
         else if (leyenda && !estaEnInicio) {
             leyenda.remove();
             leyendaCreada = false;
         }
     }
     
-    // Lo ejecutamos muy seguido al principio para atrapar a n8n cuando cargue
     let contador = 0;
     const intervaloRapido = setInterval(() => {
         aplicarEstilosForzados();
         contador++;
-        if (contador > 100) clearInterval(intervaloRapido); // Chequea durante 15 segundos
-    }, 150);
+        if (contador > 50) clearInterval(intervaloRapido);
+    }, 100);
     
-    // Y luego lo dejamos chequeando cada segundo por si acaso
-    setInterval(aplicarEstilosForzados, 1500);
+    setInterval(aplicarEstilosForzados, 1000);
     window.addEventListener('resize', aplicarEstilosForzados);
     
-    // Arrancar apenas cargue la página
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', aplicarEstilosForzados);
     } else {
