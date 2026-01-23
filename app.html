@@ -3162,38 +3162,53 @@
         const menuInicio = document.getElementById('menu-screen');
         const estaEnInicio = menuInicio && menuInicio.classList.contains('active');
         
-        // 2. BUSCAR ELEMENTOS DEL CHAT (Botón e Iframe)
+        // 2. FORZAR VISIBILIDAD (Para ganarle al CSS que dice "display: none")
+        const contenedorChat = document.querySelector('.n8n-chat-widget');
+        if (contenedorChat) {
+            contenedorChat.style.setProperty('display', 'block', 'important');
+        }
+
+        // 3. BUSCAR BOTÓN Y APLICAR POSICIONES
         const chatButton = document.querySelector('.n8n-chat-widget-button');
         const chatIframe = document.querySelector('.n8n-chat-widget iframe');
-        const chatElements = document.querySelectorAll('.n8n-chat-widget-button, .n8n-chat-widget iframe');
         
-        // Aplicar posiciones forzadas a la burbuja y al chat
-        chatElements.forEach(el => {
+        // Si el botón existe, lo acomodamos
+        if (chatButton) {
             if (isMobile) {
-                el.style.setProperty('bottom', '80px', 'important'); 
-                el.style.setProperty('right', '20px', 'important');
-                el.style.setProperty('position', 'fixed', 'important');
+                chatButton.style.setProperty('bottom', '80px', 'important'); 
+                chatButton.style.setProperty('right', '20px', 'important');
+                chatButton.style.setProperty('position', 'fixed', 'important');
+                chatButton.style.setProperty('display', 'flex', 'important'); // Asegurar que se vea
             } else {
-                el.style.setProperty('bottom', '25px', 'important');
-                el.style.setProperty('right', '25px', 'important');
+                chatButton.style.setProperty('bottom', '25px', 'important');
+                chatButton.style.setProperty('right', '25px', 'important');
             }
-            el.style.setProperty('z-index', '999999', 'important');
-        });
+            chatButton.style.setProperty('z-index', '999999', 'important');
+        }
+
+        // Acomodamos la ventana del chat (el iframe)
+        if (chatIframe) {
+            if (isMobile) {
+                chatIframe.style.setProperty('bottom', '80px', 'important');
+            } else {
+                chatIframe.style.setProperty('bottom', '25px', 'important');
+            }
+            chatIframe.style.setProperty('z-index', '999998', 'important');
+        }
         
-        // 3. LÓGICA DE LA LEYENDA (El globito verde)
+        // 4. LÓGICA DE LA LEYENDA (El globito verde)
         let leyenda = document.getElementById('chat-leyenda-custom');
         
-        // Solo intentamos crearla si el botón YA existe en el DOM
         if (chatButton && estaEnInicio && !leyendaCreada) {
             if (!leyenda) {
                 leyenda = document.createElement('div');
                 leyenda.id = 'chat-leyenda-custom';
                 leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
                 
-                // Estilos estéticos
+                // Estilos del globito
                 Object.assign(leyenda.style, {
                     position: 'fixed',
-                    background: '#2db742', // Tu verde corporativo
+                    background: '#2db742', // Verde Agencia Ayala
                     color: 'white',
                     fontWeight: 'bold',
                     boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
@@ -3204,15 +3219,14 @@
                     borderRadius: '20px 20px 0 20px'
                 });
                 
-                // Posicionamiento según dispositivo
                 if (isMobile) {
-                    leyenda.style.bottom = '135px'; // Encima de la burbuja móvil
+                    leyenda.style.bottom = '135px'; // Justo sobre la burbuja
                     leyenda.style.right = '20px';   
                     leyenda.style.fontSize = '12px';
                     leyenda.style.padding = '6px 12px';
                 } else {
-                    leyenda.style.bottom = '35px'; // Alineada con la burbuja PC
-                    leyenda.style.right = '95px';  // A la izquierda del botón en PC
+                    leyenda.style.bottom = '35px'; 
+                    leyenda.style.right = '95px';  
                     leyenda.style.fontSize = '14px';
                     leyenda.style.padding = '8px 16px';
                 }
@@ -3220,9 +3234,9 @@
                 document.body.appendChild(leyenda);
                 leyendaCreada = true;
                 
-                // Desaparece después de 6 segundos para no molestar
+                // Se borra solo en 6 segundos
                 setTimeout(() => {
-                    if (leyenda) {
+                    if (leyenda && leyenda.parentNode) {
                         leyenda.style.opacity = '0';
                         setTimeout(() => {
                             if (leyenda && leyenda.parentNode) {
@@ -3234,24 +3248,26 @@
                 }, 6000);
             }
         } 
-        // Si no estamos en Inicio, nos aseguramos de que se borre
+        // Si no estamos en Inicio, borramos la leyenda
         else if (leyenda && !estaEnInicio) {
             leyenda.remove();
             leyendaCreada = false;
         }
     }
     
-    // Intervalos de chequeo (para ganarle a la carga lenta de n8n)
+    // Lo ejecutamos muy seguido al principio para atrapar a n8n cuando cargue
     let contador = 0;
     const intervaloRapido = setInterval(() => {
         aplicarEstilosForzados();
         contador++;
-        if (contador > 60) clearInterval(intervaloRapido);
+        if (contador > 100) clearInterval(intervaloRapido); // Chequea durante 15 segundos
     }, 150);
     
+    // Y luego lo dejamos chequeando cada segundo por si acaso
     setInterval(aplicarEstilosForzados, 1500);
     window.addEventListener('resize', aplicarEstilosForzados);
     
+    // Arrancar apenas cargue la página
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', aplicarEstilosForzados);
     } else {
