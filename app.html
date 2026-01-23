@@ -3158,74 +3158,71 @@
     function aplicarEstilosForzados() {
         const isMobile = window.innerWidth <= 768;
         
-        // 1. DETECTOR DE PANTALLA (Esta es la clave)
+        // 1. DETECTOR DE PANTALLA (Solo Inicio)
         const menuInicio = document.getElementById('menu-screen');
         const estaEnInicio = menuInicio && menuInicio.classList.contains('active');
         
-        // 2. CONFIGURACIÓN DEL BOTÓN DE CHAT
-        const chatButton = document.querySelector('.n8n-chat-widget-button, [class*="chat"][class*="button"]');
+        // 2. CONFIGURACIÓN DEL BOTÓN Y EL IFRAME
+        // Usamos un selector múltiple para atrapar cualquier elemento del chat de n8n
+        const chatElements = document.querySelectorAll('.n8n-chat-widget-button, .n8n-chat-widget iframe, [class*="chat-widget"]');
         
-        if (chatButton) {
+        chatElements.forEach(el => {
             if (isMobile) {
-                chatButton.style.setProperty('bottom', '85px', 'important');
-                chatButton.style.setProperty('right', '20px', 'important');
-                chatButton.style.setProperty('z-index', '999999', 'important');
+                // Posición fija en móvil para que no "baile"
+                el.style.setProperty('bottom', '80px', 'important'); 
+                el.style.setProperty('right', '20px', 'important');
+                el.style.setProperty('position', 'fixed', 'important');
+                el.style.setProperty('z-index', '999999', 'important');
             } else {
-                chatButton.style.setProperty('bottom', '20px', 'important');
-                chatButton.style.setProperty('right', '20px', 'important');
+                // Posición en Escritorio
+                el.style.setProperty('bottom', '20px', 'important');
+                el.style.setProperty('right', '20px', 'important');
             }
-        }
+        });
         
-        // 3. CONFIGURACIÓN DEL IFRAME
-        const chatIframe = document.querySelector('.n8n-chat-widget iframe, iframe[src*="n8n"]');
-        if (chatIframe) {
-            if (isMobile) {
-                chatIframe.style.setProperty('bottom', '85px', 'important');
-                chatIframe.style.setProperty('z-index', '999998', 'important');
-            } else {
-                chatIframe.style.setProperty('bottom', '20px', 'important');
-            }
-        }
-        
-        // 4. LÓGICA DE LA LEYENDA VERDE
+        // 3. LÓGICA DE LA LEYENDA (El globito verde)
         let leyenda = document.getElementById('chat-leyenda-custom');
         
-        // Condición: Solo si hay botón, estamos en Inicio y no se ha creado aún
-        if (chatButton && estaEnInicio && !leyendaCreada) {
+        if (chatElements.length > 0 && estaEnInicio && !leyendaCreada) {
             if (!leyenda) {
                 leyenda = document.createElement('div');
                 leyenda.id = 'chat-leyenda-custom';
                 leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
                 
-                leyenda.style.position = 'fixed';
-                leyenda.style.background = '#2db742'; // Tu verde de la Agencia
-                leyenda.style.color = 'white';
-                leyenda.style.padding = '8px 16px';
-                leyenda.style.borderRadius = '20px';
-                leyenda.style.fontSize = '14px';
-                leyenda.style.fontWeight = 'bold';
-                leyenda.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
-                leyenda.style.pointerEvents = 'none';
-                leyenda.style.zIndex = '999999';
-                leyenda.style.whiteSpace = 'nowrap';
-                leyenda.style.transition = 'all 0.3s ease';
+                // Estilos visuales
+                Object.assign(leyenda.style, {
+                    position: 'fixed',
+                    background: '#2db742', // Verde de tu logo
+                    color: 'white',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                    pointerEvents: 'none',
+                    zIndex: '1000000',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.3s ease',
+                    borderRadius: '20px 20px 0 20px' // Forma de burbuja apuntando al botón
+                });
                 
                 if (isMobile) {
-                    leyenda.style.bottom = '150px';
-                    leyenda.style.left = '50%';
-                    leyenda.style.transform = 'translateX(-50%)';
+                    // Ajuste preciso para móvil: justo encima de la burbuja
+                    leyenda.style.bottom = '135px'; 
+                    leyenda.style.right = '20px';   
                     leyenda.style.fontSize = '12px';
+                    leyenda.style.padding = '6px 12px';
                 } else {
+                    // Ajuste para Escritorio
                     leyenda.style.bottom = '30px';
                     leyenda.style.right = '90px';
+                    leyenda.style.fontSize = '14px';
+                    leyenda.style.padding = '8px 16px';
                 }
                 
                 document.body.appendChild(leyenda);
                 leyendaCreada = true;
                 
-                // Desaparece sola a los 5 segundos
+                // Desvanecer después de 5 segundos
                 setTimeout(() => {
-                    if (leyenda && leyenda.parentNode) {
+                    if (leyenda) {
                         leyenda.style.opacity = '0';
                         setTimeout(() => {
                             if (leyenda && leyenda.parentNode) {
@@ -3237,14 +3234,14 @@
                 }, 5000);
             }
         } 
-        // Si el usuario sale de Inicio, borramos la leyenda inmediatamente
+        // Si el usuario cambia de pantalla (Ventas, Gastos, etc), se borra
         else if (leyenda && !estaEnInicio) {
             leyenda.remove();
             leyendaCreada = false;
         }
     }
     
-    // Ejecución constante para asegurar que n8n no mueva el botón
+    // Ejecución constante para ganar la batalla a los estilos de n8n
     let contador = 0;
     const intervaloRapido = setInterval(() => {
         aplicarEstilosForzados();
@@ -3262,6 +3259,5 @@
     }
 })();
 </script>
-
 </body>
 </html>
