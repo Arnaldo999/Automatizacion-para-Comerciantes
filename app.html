@@ -3090,107 +3090,6 @@
                     backgroundColor: '#e91e63',
                     iconColor: '#ffffff'
                 }
-            },
-            messageParser: (message) => {
-                try {
-                    console.log('📩 Mensaje recibido:', message);
-                    let data = message;
-
-                    // Si es string, intentar parsear como JSON
-                    if (typeof message === 'string') {
-                        try {
-                            data = JSON.parse(message);
-                            console.log('✅ JSON parseado:', data);
-                        } catch (e) {
-                            console.log('⚠️ No es JSON, devolviendo como texto');
-                            return message;
-                        }
-                    }
-
-                    // Extraer texto y botones de diferentes formatos posibles
-                    let texto = '';
-                    let botones = [];
-
-                    // Formato 1: { output: "texto con enlaces ya formateados" } (tu workflow actual)
-                    if (data.output && typeof data.output === 'string') {
-                        console.log('📝 Formato: output string');
-                        return data.output; // Ya viene formateado del workflow
-                    }
-                    // Formato 2: { output: { text: "...", buttons: [...] } }
-                    else if (data.output && typeof data.output === 'object') {
-                        console.log('📦 Formato: output object');
-                        texto = data.output.text || '';
-                        botones = data.output.buttons || [];
-                    }
-                    // Formato 3: { text: "...", buttons: [...] }
-                    else if (data.text !== undefined) {
-                        console.log('📄 Formato: text/buttons');
-                        texto = data.text;
-                        botones = data.buttons || [];
-                    }
-                    // Formato 4: { respuesta: "...", botones: [...] }
-                    else if (data.respuesta !== undefined) {
-                        console.log('💬 Formato: respuesta/botones');
-                        texto = data.respuesta;
-                        botones = data.botones || [];
-                    }
-                    // Formato 5: Solo texto
-                    else {
-                        console.log('📋 Formato: texto plano');
-                        texto = typeof data === 'string' ? data : JSON.stringify(data);
-                    }
-
-                    console.log('📝 Texto extraído:', texto);
-                    console.log('🔘 Botones encontrados:', botones);
-
-                    // 🧪 MODO PRUEBA: Si no hay botones, agregar botones de prueba
-                    const MODO_PRUEBA = true; // Cambiar a false cuando funcione
-                    if (MODO_PRUEBA && (!Array.isArray(botones) || botones.length === 0)) {
-                        console.log('🧪 MODO PRUEBA: Agregando botones de prueba');
-                        botones = [
-                            { etiqueta: "WhatsApp", url: "https://wa.me/543765384843" },
-                            { etiqueta: "Instagram", url: "https://instagram.com/arnaldoayalaestratega" },
-                            { etiqueta: "Sitio Web", url: "https://arnaldoayalaestratega.com" }
-                        ];
-                    }
-
-                    // Si no hay botones, devolver solo el texto
-                    if (!Array.isArray(botones) || botones.length === 0) {
-                        console.log('⚠️ Sin botones, devolviendo solo texto');
-                        return texto || message;
-                    }
-
-                    // Construir mensaje con botones en formato Markdown
-                    let mensajeFinal = texto + '\n\n';
-
-                    botones.forEach((btn, index) => {
-                        const etiqueta = btn.etiqueta || btn.label || 'Enlace';
-                        const url = btn.url;
-
-                        console.log(`🔘 Botón ${index + 1}:`, { etiqueta, url });
-
-                        if (!url) {
-                            console.log(`⚠️ Botón ${index + 1} sin URL, saltando`);
-                            return;
-                        }
-
-                        let emoji = '🔗';
-                        const labelLower = etiqueta.toLowerCase();
-                        if (labelLower.includes('whatsapp')) emoji = '💬';
-                        else if (labelLower.includes('instagram')) emoji = '📸';
-                        else if (labelLower.includes('web') || labelLower.includes('sitio')) emoji = '🌐';
-
-                        // ✅ Formato Markdown: [texto](url) para enlaces clickeables
-                        mensajeFinal += `${emoji} [${etiqueta}](${url})\n`;
-                    });
-
-                    console.log('✅ Mensaje final:', mensajeFinal);
-                    return mensajeFinal;
-
-                } catch (error) {
-                    console.error('Error procesando mensaje:', error);
-                    return typeof message === 'string' ? message : JSON.stringify(message);
-                }
             }
         });
 
@@ -3202,16 +3101,10 @@
             }
         };
 
-        // 🔥 INTERCEPTOR DE MENSAJES DEL CHAT (alternativa a messageParser)
-        // Como messageParser no se ejecuta, observamos el DOM directamente
+        // 🔗 Interceptor de enlaces del chat
         setTimeout(() => {
             const chatTarget = document.getElementById('n8n-chat-target');
-            if (!chatTarget) {
-                console.warn('⚠️ Chat target no encontrado');
-                return;
-            }
-
-            console.log('👀 Iniciando observador de mensajes del chat...');
+            if (!chatTarget) return;
 
             const observer = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
@@ -3224,9 +3117,7 @@
                             messageElements.forEach(el => {
                                 const text = el.textContent || '';
 
-                                // Buscar patrones de URL y convertirlos a enlaces
-                                if (text.includes('https://') || text.includes('http://') || text.includes('www.')) {
-                                    console.log('🔗 Encontrado mensaje con URL:', text);
+                                if (text.includes('https://') || text.includes('http://')) {
 
                                     // Convertir: "WhatsApp: https://wa.me/..." → enlace clickeable
                                     const urlPattern = /(https?:\/\/[^\s]+)/g;
@@ -3251,7 +3142,6 @@
 
                                     if (newHTML !== text) {
                                         el.innerHTML = newHTML;
-                                        console.log('✅ Enlaces convertidos a clickeables');
                                     }
                                 }
                             });
@@ -3260,14 +3150,8 @@
                 });
             });
 
-            // Observar cambios en el contenedor del chat
-            observer.observe(chatTarget, {
-                childList: true,
-                subtree: true
-            });
-
-            console.log('✅ Observador de chat activo');
-        }, 2000); // Esperar 2s para que el chat se inicialice
+            observer.observe(chatTarget, { childList: true, subtree: true });
+        }, 2000);
     </script>
 
 </body>
