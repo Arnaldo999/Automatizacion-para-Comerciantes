@@ -3159,12 +3159,8 @@ document.addEventListener('DOMContentLoaded', function() {
    <script>
 (function() {
     let leyendaCreada = false;
-    let aplicandoEstilos = false; // Prevenir loops infinitos
     
     function aplicarEstilosForzados() {
-        if (aplicandoEstilos) return;
-        aplicandoEstilos = true;
-        
         const isMobile = window.innerWidth <= 768;
         
         // 1. Detectar si estamos en Inicio
@@ -3204,10 +3200,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // 4. LEYENDA DINÁMICA (Solo en Inicio)
+        // 4. LEYENDA PERMANENTE (Solo en Inicio)
         let leyenda = document.getElementById('chat-leyenda-custom');
         
-        if (chatButton && estaEnInicio && !leyendaCreada) {
+        if (chatButton && estaEnInicio) {
             if (!leyenda) {
                 leyenda = document.createElement('div');
                 leyenda.id = 'chat-leyenda-custom';
@@ -3225,34 +3221,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     pointer-events: none;
                     z-index: 999999;
                     white-space: nowrap;
-                    transition: opacity 0.3s ease;
                     opacity: 1;
                     ${isMobile 
                         ? 'bottom: 155px; left: 50%; transform: translateX(-50%);' 
-                        : 'bottom: 30px; right: 90px;'}
+                        : 'bottom: 85px; right: 20px;'}
                 `;
                 
                 document.body.appendChild(leyenda);
                 leyendaCreada = true;
-                
-                setTimeout(() => {
-                    if (leyenda) {
-                        leyenda.style.opacity = '0';
-                        setTimeout(() => {
-                            if (leyenda && leyenda.parentNode) {
-                                leyenda.parentNode.removeChild(leyenda);
-                                leyendaCreada = false;
-                            }
-                        }, 300);
-                    }
-                }, 5000);
             }
         } else if (leyenda && !estaEnInicio) {
             leyenda.remove();
             leyendaCreada = false;
         }
-        
-        aplicandoEstilos = false;
     }
     
     // Ejecutar agresivamente al inicio
