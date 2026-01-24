@@ -2994,6 +2994,7 @@
 
         setInterval(forceChatPosition, 1000); // Mantenimiento continuo
         // ==========================================
+// ==========================================
 //  CERRAR MODALES AL HACER CLIC AFUERA
 // ==========================================
 
@@ -3004,7 +3005,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (modalPerfil) {
         modalPerfil.addEventListener('click', function(e) {
-            // Si el clic fue en el fondo oscuro (no en el contenido)
             if (e.target === modalPerfil) {
                 cerrarPerfil();
             }
@@ -3033,26 +3033,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3️⃣ TECLA ESC para cerrar cualquier modal visible
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' || e.key === 'Esc') {
-            // Cerrar modal de perfil si está abierto
             if (modalPerfil && !modalPerfil.classList.contains('hidden')) {
                 cerrarPerfil();
             }
-            // Cerrar modal de cobro si está abierto
             const modalCobro = document.getElementById('modalCobro');
             if (modalCobro && modalCobro.classList.contains('flex')) {
                 cerrarModalCobro();
             }
-            // Cerrar modal de edición si está abierto
             const modalEdit = document.getElementById('modalEdit');
             if (modalEdit && modalEdit.classList.contains('flex')) {
                 cerrarModalEdit();
             }
-            // Cerrar modal de editar producto si está abierto
             const modalEditProd = document.getElementById('modalEditProducto');
             if (modalEditProd && modalEditProd.classList.contains('flex')) {
                 cerrarModalEditProducto();
             }
-            // Cerrar modal de reporte si está abierto
             const modalReporte = document.getElementById('modalSolicitarReporte');
             if (modalReporte && modalReporte.classList.contains('flex')) {
                 cerrarModalReporte();
@@ -3060,7 +3055,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-    </script>
+</script>
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -3164,36 +3159,38 @@ document.addEventListener('DOMContentLoaded', function() {
    <script>
 (function() {
     let leyendaCreada = false;
+    let aplicandoEstilos = false; // Prevenir loops infinitos
     
     function aplicarEstilosForzados() {
+        if (aplicandoEstilos) return;
+        aplicandoEstilos = true;
+        
         const isMobile = window.innerWidth <= 768;
         
-        // 1. LLAVE DE SEGURIDAD: Detectar si estamos en Inicio
+        // 1. Detectar si estamos en Inicio
         const menuInicio = document.getElementById('menu-screen');
         const estaEnInicio = menuInicio && menuInicio.classList.contains('active');
         
-        // 2. BOTÓN - ULTRA AGRESIVO
-        const chatButton = document.querySelector('.n8n-chat-widget-button, [class*="chat"][class*="button"]');
+        // 2. BOTÓN DEL CHAT
+        const chatButton = document.querySelector('.n8n-chat-widget-button');
         
         if (chatButton) {
             if (isMobile) {
-                // ✅ FORZAR POSICIÓN MÓVIL (ENCIMA DEL MENÚ)
                 chatButton.style.setProperty('bottom', '90px', 'important');
                 chatButton.style.setProperty('right', '20px', 'important');
                 chatButton.style.setProperty('z-index', '999999', 'important');
                 chatButton.style.setProperty('position', 'fixed', 'important');
-                
-                // ✅ ELIMINAR CUALQUIER TRANSFORM O TOP QUE PUEDA INTERFERIR
                 chatButton.style.setProperty('transform', 'none', 'important');
                 chatButton.style.setProperty('top', 'auto', 'important');
             } else {
                 chatButton.style.setProperty('bottom', '20px', 'important');
                 chatButton.style.setProperty('right', '20px', 'important');
+                chatButton.style.setProperty('position', 'fixed', 'important');
             }
         }
         
-        // 3. IFRAME - ULTRA AGRESIVO
-        const chatIframe = document.querySelector('.n8n-chat-widget iframe, iframe[src*="n8n"]');
+        // 3. IFRAME DEL CHAT
+        const chatIframe = document.querySelector('.n8n-chat-widget iframe');
         
         if (chatIframe) {
             if (isMobile) {
@@ -3203,10 +3200,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 chatIframe.style.setProperty('top', 'auto', 'important');
             } else {
                 chatIframe.style.setProperty('bottom', '20px', 'important');
+                chatIframe.style.setProperty('position', 'fixed', 'important');
             }
         }
         
-        // 4. LEYENDA DINÁMICA (Solo si es Inicio)
+        // 4. LEYENDA DINÁMICA (Solo en Inicio)
         let leyenda = document.getElementById('chat-leyenda-custom');
         
         if (chatButton && estaEnInicio && !leyendaCreada) {
@@ -3215,36 +3213,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 leyenda.id = 'chat-leyenda-custom';
                 leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
                 
-                leyenda.style.position = 'fixed';
-                leyenda.style.background = '#e91e63';
-                leyenda.style.color = 'white';
-                leyenda.style.padding = '8px 16px';
-                leyenda.style.borderRadius = '20px';
-                leyenda.style.fontSize = '14px';
-                leyenda.style.fontWeight = 'bold';
-                leyenda.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
-                leyenda.style.pointerEvents = 'none';
-                leyenda.style.zIndex = '999999';
-                leyenda.style.whiteSpace = 'nowrap';
-                leyenda.style.transition = 'all 0.3s ease';
-                leyenda.style.opacity = '1';
-                
-                if (isMobile) {
-                    // ✅ PEGADA AL BOTÓN DEL CHAT
-                    leyenda.style.bottom = '155px'; // 90px (botón) + 65px (altura aprox)
-                    leyenda.style.left = '50%';
-                    leyenda.style.transform = 'translateX(-50%)';
-                    leyenda.style.fontSize = '12px';
-                    leyenda.style.padding = '6px 12px';
-                } else {
-                    leyenda.style.bottom = '30px';
-                    leyenda.style.right = '90px';
-                }
+                leyenda.style.cssText = `
+                    position: fixed;
+                    background: #e91e63;
+                    color: white;
+                    padding: ${isMobile ? '6px 12px' : '8px 16px'};
+                    border-radius: 20px;
+                    font-size: ${isMobile ? '12px' : '14px'};
+                    font-weight: bold;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                    pointer-events: none;
+                    z-index: 999999;
+                    white-space: nowrap;
+                    transition: opacity 0.3s ease;
+                    opacity: 1;
+                    ${isMobile 
+                        ? 'bottom: 155px; left: 50%; transform: translateX(-50%);' 
+                        : 'bottom: 30px; right: 90px;'}
+                `;
                 
                 document.body.appendChild(leyenda);
                 leyendaCreada = true;
                 
-                // Auto-hide después de 5 segundos
                 setTimeout(() => {
                     if (leyenda) {
                         leyenda.style.opacity = '0';
@@ -3257,45 +3247,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }, 5000);
             }
-        } 
-        // Si sale de inicio, borramos la leyenda si existe
-        else if (leyenda && !estaEnInicio) {
+        } else if (leyenda && !estaEnInicio) {
             leyenda.remove();
             leyendaCreada = false;
         }
+        
+        aplicandoEstilos = false;
     }
     
-    // ✅ EJECUCIÓN ULTRA AGRESIVA
+    // Ejecutar agresivamente al inicio
     let contador = 0;
     const intervaloRapido = setInterval(() => {
         aplicarEstilosForzados();
         contador++;
-        if (contador > 100) clearInterval(intervaloRapido); // 10 segundos de fuerza bruta
+        if (contador > 100) clearInterval(intervaloRapido);
     }, 100);
     
-    // Mantenimiento continuo cada medio segundo (más frecuente)
-    setInterval(aplicarEstilosForzados, 500);
+    // Mantenimiento continuo
+    setInterval(aplicarEstilosForzados, 1000);
     
-    // Escuchar cambios de tamaño
+    // Escuchar eventos
     window.addEventListener('resize', aplicarEstilosForzados);
+    document.addEventListener('DOMContentLoaded', aplicarEstilosForzados);
     
-    // Ejecutar inmediatamente
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', aplicarEstilosForzados);
-    } else {
+    // Si ya está cargado, ejecutar ahora
+    if (document.readyState !== 'loading') {
         aplicarEstilosForzados();
     }
     
-    // ✅ NUEVO: Observar cambios en el DOM (por si n8n inyecta después)
+    // Observer para detectar cuando n8n inyecta el chat
     const observer = new MutationObserver(() => {
         aplicarEstilosForzados();
     });
     
     observer.observe(document.body, {
         childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['style', 'class']
+        subtree: true
     });
 })();
 </script>
