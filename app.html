@@ -3050,6 +3050,73 @@
         }, 100);
 
         setInterval(forceChatPosition, 1000); // Mantenimiento continuo
+        // ==========================================
+//  CERRAR MODALES AL HACER CLIC AFUERA
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // 1️⃣ MODAL PERFIL - Cerrar al hacer clic en el fondo oscuro
+    const modalPerfil = document.getElementById('modalPerfil');
+    
+    if (modalPerfil) {
+        modalPerfil.addEventListener('click', function(e) {
+            // Si el clic fue en el fondo oscuro (no en el contenido)
+            if (e.target === modalPerfil) {
+                cerrarPerfil();
+            }
+        });
+    }
+    
+    // 2️⃣ OTROS MODALES EXISTENTES - Cerrar al hacer clic afuera
+    const modalesConFondo = [
+        { modal: 'modalCobro', cerrar: cerrarModalCobro },
+        { modal: 'modalEdit', cerrar: cerrarModalEdit },
+        { modal: 'modalEditProducto', cerrar: cerrarModalEditProducto },
+        { modal: 'modalSolicitarReporte', cerrar: cerrarModalReporte }
+    ];
+    
+    modalesConFondo.forEach(item => {
+        const modal = document.getElementById(item.modal);
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    item.cerrar();
+                }
+            });
+        }
+    });
+    
+    // 3️⃣ TECLA ESC para cerrar cualquier modal visible
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            // Cerrar modal de perfil si está abierto
+            if (modalPerfil && !modalPerfil.classList.contains('hidden')) {
+                cerrarPerfil();
+            }
+            // Cerrar modal de cobro si está abierto
+            const modalCobro = document.getElementById('modalCobro');
+            if (modalCobro && modalCobro.classList.contains('flex')) {
+                cerrarModalCobro();
+            }
+            // Cerrar modal de edición si está abierto
+            const modalEdit = document.getElementById('modalEdit');
+            if (modalEdit && modalEdit.classList.contains('flex')) {
+                cerrarModalEdit();
+            }
+            // Cerrar modal de editar producto si está abierto
+            const modalEditProd = document.getElementById('modalEditProducto');
+            if (modalEditProd && modalEditProd.classList.contains('flex')) {
+                cerrarModalEditProducto();
+            }
+            // Cerrar modal de reporte si está abierto
+            const modalReporte = document.getElementById('modalSolicitarReporte');
+            if (modalReporte && modalReporte.classList.contains('flex')) {
+                cerrarModalReporte();
+            }
+        }
+    });
+});
     </script>
 
     <script>
