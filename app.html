@@ -1422,8 +1422,7 @@
             comercianteData.id = id;
             updateUIFields('userId', id);
             updateUIFields('sidebarUserId', id);
-            updateUIFields('headerUserName', comercianteData.nombre);
-            updateUIFields('headerUserName', comercianteData.id);
+            updateUIFields('headerUserId', id);
 
             try {
                 const response = await fetch(`${WEBHOOKS.CONSULTA}?id=${id}`);
@@ -2959,45 +2958,6 @@
             }
         });
 
-        // ✅ JS FORCE: Agresivo script para asegurar que el chat suba en móvil
-        // N8n a veces inyecta estilos inline que ganan al CSS !important
-        let checkCount = 0;
-        const forceChatPosition = () => {
-            if (window.innerWidth <= 768) {
-                // Buscamos el botón y el iframe por todas sus clases posibles
-                const cBtn = document.querySelector('.n8n-chat-widget-button') || document.querySelector('[class*="chat-widget-button"]');
-                const cFrame = document.querySelector('.n8n-chat-widget iframe') || document.querySelector('iframe[src*="n8n"]');
-                const cTarget = document.getElementById('n8n-chat-target');
-
-                if (cBtn) {
-                    cBtn.style.setProperty('bottom', '120px', 'important');
-                    cBtn.style.setProperty('top', 'auto', 'important'); // Evitar conflicto
-                    cBtn.style.setProperty('z-index', '2147483647', 'important'); // Max Z-index
-                }
-                if (cFrame) {
-                    cFrame.style.setProperty('bottom', '120px', 'important');
-                    cFrame.style.setProperty('top', 'auto', 'important');
-                    cFrame.style.setProperty('z-index', '2147483647', 'important');
-                }
-            } else {
-                // Reset en escritorio
-                const cBtn = document.querySelector('.n8n-chat-widget-button');
-                if (cBtn) {
-                    cBtn.style.bottom = '';
-                    cBtn.style.top = '';
-                }
-            }
-        };
-
-        // Ejecutar rápido al principio, luego mantener
-        const fastInterval = setInterval(() => {
-            forceChatPosition();
-            checkCount++;
-            if (checkCount > 50) clearInterval(fastInterval); // Parar el rápido a los 5s
-        }, 100);
-
-        setInterval(forceChatPosition, 1000); // Mantenimiento continuo
-        // ==========================================
 // ==========================================
 //  CERRAR MODALES AL HACER CLIC AFUERA
 // ==========================================
@@ -3196,22 +3156,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
                 
                 leyenda.style.cssText = `
-                    position: fixed !important;
-                    background: #e91e63 !important;
-                    color: white !important;
-                    padding: 8px 16px !important;
-                    border-radius: 20px !important;
-                    font-size: 14px !important;
-                    font-weight: bold !important;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-                    pointer-events: none !important;
-                    z-index: 2147483647 !important;
-                    white-space: nowrap !important;
-                    opacity: 1 !important;
-                    display: block !important;
-                    bottom: 85px !important;
-                    right: 20px !important;
-                `;
+    position: fixed !important;
+    background: #e91e63 !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    border-radius: 20px !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+    pointer-events: none !important;
+    z-index: 2147483647 !important;
+    white-space: nowrap !important;
+    opacity: 1 !important;
+    display: block !important;
+    bottom: 20px !important;
+    right: 90px !important;
+`;
                 
                 document.body.appendChild(leyenda);
                 console.log('✅ Leyenda del chat CREADA');
