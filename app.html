@@ -286,8 +286,7 @@
                         </div>
                     </div>
                     <!-- Nombre del local restaurado -->
-                    <div id="headerUserName"
-                        class="text-xs text-gray-300 font-medium truncate max-w-[120px] leading-tight">...</div>
+                    <div id="headerUserName" class="text-xs text-gray-300 font-medium truncate max-w-[120px] leading-tight">...</div>
                 </div>
             </div>
 
@@ -1423,7 +1422,7 @@
             comercianteData.id = id;
             updateUIFields('userId', id);
             updateUIFields('sidebarUserId', id);
-            updateUIFields('headerUserId', id);
+            updateUIFields('headerUserName', comercianteData.nombre);
 
             try {
                 const response = await fetch(`${WEBHOOKS.CONSULTA}?id=${id}`);
@@ -3169,11 +3168,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const menuInicio = document.getElementById('menu-screen');
         const estaEnInicio = menuInicio && menuInicio.classList.contains('active');
         
-        // 2. Verificar que exista el botón del chat
-        const chatButton = document.querySelector('.n8n-chat-widget-button');
+        // 2. BÚSQUEDA AGRESIVA del botón del chat (múltiples selectores)
+        const chatButton = document.querySelector('.n8n-chat-widget-button') 
+                        || document.querySelector('[class*="chat"]') 
+                        || document.querySelector('button[class*="widget"]')
+                        || document.querySelector('#n8n-chat');
+        
+        // 🔍 DEBUG: Mostrar en consola qué está pasando
+        if (estaEnInicio && !isMobile) {
+            console.log('🔍 DEBUG Leyenda:', {
+                'Estamos en Inicio': estaEnInicio,
+                'Es Móvil': isMobile,
+                'Chat Button encontrado': !!chatButton,
+                'Ancho ventana': window.innerWidth
+            });
+        }
         
         // 3. LEYENDA (Solo Desktop + Solo Inicio)
-        // ✅ FIX: Siempre buscamos la leyenda en el DOM, no confiamos en variables
         let leyenda = document.getElementById('chat-leyenda-custom');
         
         if (chatButton && estaEnInicio && !isMobile) {
@@ -3184,34 +3195,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
                 
                 leyenda.style.cssText = `
-                    position: fixed;
-                    background: #e91e63;
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: 20px;
-                    font-size: 14px;
-                    font-weight: bold;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-                    pointer-events: none;
-                    z-index: 999999;
-                    white-space: nowrap;
-                    opacity: 1;
-                    bottom: 85px;
-                    right: 20px;
+                    position: fixed !important;
+                    background: #e91e63 !important;
+                    color: white !important;
+                    padding: 8px 16px !important;
+                    border-radius: 20px !important;
+                    font-size: 14px !important;
+                    font-weight: bold !important;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+                    pointer-events: none !important;
+                    z-index: 2147483647 !important;
+                    white-space: nowrap !important;
+                    opacity: 1 !important;
+                    display: block !important;
+                    bottom: 85px !important;
+                    right: 20px !important;
                 `;
                 
                 document.body.appendChild(leyenda);
-                console.log('✅ Leyenda del chat creada');
+                console.log('✅ Leyenda del chat CREADA');
+            } else {
+                console.log('ℹ️ Leyenda ya existe en DOM');
             }
         } 
         // Eliminar leyenda si salimos de Inicio o estamos en móvil
         else if (leyenda) {
             leyenda.remove();
-            console.log('🗑️ Leyenda eliminada');
+            console.log('🗑️ Leyenda eliminada (fuera de Inicio o en móvil)');
         }
     }
     
-    // Ejecutar cada 100ms durante 10 segundos (para asegurar que n8n se cargue)
+    // Ejecutar cada 100ms durante 10 segundos
     let contador = 0;
     const intervaloRapido = setInterval(() => {
         aplicarEstilosForzados();
@@ -3222,16 +3236,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mantenimiento continuo cada segundo
     setInterval(aplicarEstilosForzados, 1000);
     
-    // Escuchar cambios de tamaño
+    // Escuchar cambios
     window.addEventListener('resize', aplicarEstilosForzados);
-    
-    // Ejecutar al cargar
     document.addEventListener('DOMContentLoaded', aplicarEstilosForzados);
+    
     if (document.readyState !== 'loading') {
         aplicarEstilosForzados();
     }
     
-    // Observer para detectar cuando n8n inyecta el chat
+    // Observer para detectar n8n
     const observer = new MutationObserver(() => {
         aplicarEstilosForzados();
     });
