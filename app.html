@@ -3162,8 +3162,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
    <script>
 (function() {
-    let leyendaCreada = false;
-    
     function aplicarEstilosForzados() {
         const isMobile = window.innerWidth <= 768;
         
@@ -3175,39 +3173,40 @@ document.addEventListener('DOMContentLoaded', function() {
         const chatButton = document.querySelector('.n8n-chat-widget-button');
         
         // 3. LEYENDA (Solo Desktop + Solo Inicio)
+        // ✅ FIX: Siempre buscamos la leyenda en el DOM, no confiamos en variables
         let leyenda = document.getElementById('chat-leyenda-custom');
         
-        if (chatButton && estaEnInicio && !isMobile && !leyendaCreada) {
-            leyenda = document.createElement('div');
-            leyenda.id = 'chat-leyenda-custom';
-            leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
-            
-            leyenda.style.cssText = `
-                position: fixed;
-                background: #e91e63;
-                color: white;
-                padding: 8px 16px;
-                border-radius: 20px;
-                font-size: 14px;
-                font-weight: bold;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-                pointer-events: none;
-                z-index: 999999;
-                white-space: nowrap;
-                opacity: 1;
-                bottom: 85px;
-                right: 20px;
-            `;
-            
-            document.body.appendChild(leyenda);
-            leyendaCreada = true;
-            
-            console.log('✅ Leyenda del chat creada');
+        if (chatButton && estaEnInicio && !isMobile) {
+            // Si NO existe en el DOM, crearla
+            if (!leyenda) {
+                leyenda = document.createElement('div');
+                leyenda.id = 'chat-leyenda-custom';
+                leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
+                
+                leyenda.style.cssText = `
+                    position: fixed;
+                    background: #e91e63;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                    pointer-events: none;
+                    z-index: 999999;
+                    white-space: nowrap;
+                    opacity: 1;
+                    bottom: 85px;
+                    right: 20px;
+                `;
+                
+                document.body.appendChild(leyenda);
+                console.log('✅ Leyenda del chat creada');
+            }
         } 
         // Eliminar leyenda si salimos de Inicio o estamos en móvil
-        else if (leyenda && (!estaEnInicio || isMobile)) {
+        else if (leyenda) {
             leyenda.remove();
-            leyendaCreada = false;
             console.log('🗑️ Leyenda eliminada');
         }
     }
