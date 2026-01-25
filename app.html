@@ -1423,6 +1423,7 @@
             updateUIFields('userId', id);
             updateUIFields('sidebarUserId', id);
             updateUIFields('headerUserName', comercianteData.nombre);
+            updateUIFields('headerUserName', comercianteData.id);
 
             try {
                 const response = await fetch(`${WEBHOOKS.CONSULTA}?id=${id}`);
