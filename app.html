@@ -157,9 +157,13 @@
             }
         }
 
-        /* Ocultar por defecto para controlarlo con JS */
-.n8n-chat-widget {
-    display: none;
+       /* Ocultar SOLO en móvil */
+@media (max-width: 768px) {
+    .n8n-chat-widget,
+    .n8n-chat-widget-button,
+    .n8n-chat-widget iframe {
+        display: none !important;
+    }
 }
     </style>
 </head>
@@ -3167,71 +3171,48 @@ document.addEventListener('DOMContentLoaded', function() {
         const menuInicio = document.getElementById('menu-screen');
         const estaEnInicio = menuInicio && menuInicio.classList.contains('active');
         
-        // 2. BOTÓN DEL CHAT
+        // 2. Verificar que exista el botón del chat
         const chatButton = document.querySelector('.n8n-chat-widget-button');
         
-        if (chatButton) {
-            if (isMobile) {
-                // OCULTAR EN MÓVIL
-                chatButton.style.display = 'none';
-            } else {
-                chatButton.style.setProperty('display', 'block', 'important');
-                chatButton.style.setProperty('bottom', '20px', 'important');
-                chatButton.style.setProperty('right', '20px', 'important');
-                chatButton.style.setProperty('position', 'fixed', 'important');
-            }
-        }
-        
-        // 3. IFRAME DEL CHAT
-        const chatIframe = document.querySelector('.n8n-chat-widget iframe');
-        
-        if (chatIframe) {
-            if (isMobile) {
-                // OCULTAR EN MÓVIL
-                chatIframe.style.display = 'none';
-            } else {
-                chatIframe.style.setProperty('display', 'block', 'important');
-                chatIframe.style.setProperty('bottom', '20px', 'important');
-                chatIframe.style.setProperty('position', 'fixed', 'important');
-            }
-        }
-        
-        // 4. LEYENDA PERMANENTE (Solo en Desktop, Solo en Inicio)
+        // 3. LEYENDA (Solo Desktop + Solo Inicio)
         let leyenda = document.getElementById('chat-leyenda-custom');
         
-        if (chatButton && estaEnInicio && !isMobile) {
-            if (!leyenda) {
-                leyenda = document.createElement('div');
-                leyenda.id = 'chat-leyenda-custom';
-                leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
-                
-                leyenda.style.cssText = `
-                    position: fixed;
-                    background: #e91e63;
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: 20px;
-                    font-size: 14px;
-                    font-weight: bold;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-                    pointer-events: none;
-                    z-index: 999999;
-                    white-space: nowrap;
-                    opacity: 1;
-                    bottom: 85px;
-                    right: 20px;
-                `;
-                
-                document.body.appendChild(leyenda);
-                leyendaCreada = true;
-            }
-        } else if (leyenda && (!estaEnInicio || isMobile)) {
+        if (chatButton && estaEnInicio && !isMobile && !leyendaCreada) {
+            leyenda = document.createElement('div');
+            leyenda.id = 'chat-leyenda-custom';
+            leyenda.textContent = '¿Necesitas ayuda? Pregúntame aquí...';
+            
+            leyenda.style.cssText = `
+                position: fixed;
+                background: #e91e63;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: bold;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                pointer-events: none;
+                z-index: 999999;
+                white-space: nowrap;
+                opacity: 1;
+                bottom: 85px;
+                right: 20px;
+            `;
+            
+            document.body.appendChild(leyenda);
+            leyendaCreada = true;
+            
+            console.log('✅ Leyenda del chat creada');
+        } 
+        // Eliminar leyenda si salimos de Inicio o estamos en móvil
+        else if (leyenda && (!estaEnInicio || isMobile)) {
             leyenda.remove();
             leyendaCreada = false;
+            console.log('🗑️ Leyenda eliminada');
         }
     }
     
-    // Ejecutar agresivamente al inicio
+    // Ejecutar cada 100ms durante 10 segundos (para asegurar que n8n se cargue)
     let contador = 0;
     const intervaloRapido = setInterval(() => {
         aplicarEstilosForzados();
@@ -3239,14 +3220,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (contador > 100) clearInterval(intervaloRapido);
     }, 100);
     
-    // Mantenimiento continuo
+    // Mantenimiento continuo cada segundo
     setInterval(aplicarEstilosForzados, 1000);
     
-    // Escuchar eventos
+    // Escuchar cambios de tamaño
     window.addEventListener('resize', aplicarEstilosForzados);
-    document.addEventListener('DOMContentLoaded', aplicarEstilosForzados);
     
-    // Si ya está cargado, ejecutar ahora
+    // Ejecutar al cargar
+    document.addEventListener('DOMContentLoaded', aplicarEstilosForzados);
     if (document.readyState !== 'loading') {
         aplicarEstilosForzados();
     }
