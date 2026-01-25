@@ -3172,13 +3172,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (chatButton) {
             if (isMobile) {
-                chatButton.style.setProperty('bottom', '90px', 'important');
-                chatButton.style.setProperty('right', '20px', 'important');
-                chatButton.style.setProperty('z-index', '999999', 'important');
-                chatButton.style.setProperty('position', 'fixed', 'important');
-                chatButton.style.setProperty('transform', 'none', 'important');
-                chatButton.style.setProperty('top', 'auto', 'important');
+                // OCULTAR EN MÓVIL
+                chatButton.style.display = 'none';
             } else {
+                chatButton.style.setProperty('display', 'block', 'important');
                 chatButton.style.setProperty('bottom', '20px', 'important');
                 chatButton.style.setProperty('right', '20px', 'important');
                 chatButton.style.setProperty('position', 'fixed', 'important');
@@ -3190,20 +3187,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (chatIframe) {
             if (isMobile) {
-                chatIframe.style.setProperty('bottom', '90px', 'important');
-                chatIframe.style.setProperty('z-index', '999998', 'important');
-                chatIframe.style.setProperty('position', 'fixed', 'important');
-                chatIframe.style.setProperty('top', 'auto', 'important');
+                // OCULTAR EN MÓVIL
+                chatIframe.style.display = 'none';
             } else {
+                chatIframe.style.setProperty('display', 'block', 'important');
                 chatIframe.style.setProperty('bottom', '20px', 'important');
                 chatIframe.style.setProperty('position', 'fixed', 'important');
             }
         }
         
-        // 4. LEYENDA PERMANENTE (Solo en Inicio)
+        // 4. LEYENDA PERMANENTE (Solo en Desktop, Solo en Inicio)
         let leyenda = document.getElementById('chat-leyenda-custom');
         
-        if (chatButton && estaEnInicio) {
+        if (chatButton && estaEnInicio && !isMobile) {
             if (!leyenda) {
                 leyenda = document.createElement('div');
                 leyenda.id = 'chat-leyenda-custom';
@@ -3213,24 +3209,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: fixed;
                     background: #e91e63;
                     color: white;
-                    padding: ${isMobile ? '6px 12px' : '8px 16px'};
+                    padding: 8px 16px;
                     border-radius: 20px;
-                    font-size: ${isMobile ? '12px' : '14px'};
+                    font-size: 14px;
                     font-weight: bold;
                     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
                     pointer-events: none;
                     z-index: 999999;
                     white-space: nowrap;
                     opacity: 1;
-                    ${isMobile 
-                        ? 'bottom: 155px; left: 50%; transform: translateX(-50%);' 
-                        : 'bottom: 85px; right: 20px;'}
+                    bottom: 85px;
+                    right: 20px;
                 `;
                 
                 document.body.appendChild(leyenda);
                 leyendaCreada = true;
             }
-        } else if (leyenda && !estaEnInicio) {
+        } else if (leyenda && (!estaEnInicio || isMobile)) {
             leyenda.remove();
             leyendaCreada = false;
         }
